@@ -4,6 +4,8 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import utils
 from tqdm import tqdm
+import os
+
 
 def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
@@ -34,4 +36,24 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         train_nll /= len(train_iter.dataset)
         train_kl /= len(train_iter.dataset)
         train_loss = train_nll + train_kl
-        print('Epoch: {} Loss: {:.4f} NLL: {:.4f} KL: {:.4f}'.format(epoch+1, train_loss, train_nll, train_kl))
+
+        results = 'Epoch: {} Loss: {:.4f} NLL: {:.4f} KL: {:.4f}'.format(epoch+1, train_loss, train_nll, train_kl)
+        print(results)
+
+        if not (epoch + 1) % 10:
+            local_path = os.getcwd()
+            model_path = local_path + "/" + model_name
+            if not os.path.exists(model_path):
+                os.makedirs(model_path)
+            eval_file = model_path + "/" + "eval.txt"
+
+            if epoch == 0:
+                f = open(eval_file, "w")
+                f.close()
+
+            with open(eval_file, "a") as f:
+                f.write("{}: {}\n".format(epoch + 1, results))
+
+            if checkpoint:
+                model_file = model_path + "/" + str(epoch + 1) + ".pt"
+                torch.save(model, model_file)
