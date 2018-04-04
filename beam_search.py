@@ -17,7 +17,7 @@ class Beam(object):
     Currently does not allow batching.
     """
 
-    def __init__(self, width, v_size, model, src, bos, pad, eos, gpu=True):
+    def __init__(self, width, v_size, model, src, bos, eos, gpu=True):
         self.width = width  # beam width
         self.v_size = v_size  # vocab size
         self.prevs = []  # list of previous word indices in this strand, each element is 'width' long
