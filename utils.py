@@ -60,7 +60,7 @@ def perp_bound(model, val_iter, gpu=True):
         ll, kl, _ = model.forward(src, trg)
         # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
         nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
-        val_loss += nll.data.cpu().numpy()[0] + kl.data.cpu().numpy()[0]
+        val_loss += nll.item() + kl.item()
     val_loss /= len(val_iter)
     model.train()
     return np.exp(val_loss)
@@ -83,7 +83,7 @@ def perplexity(model, val_iter, gpu=True):
         ll, _ = model.forward(src, trg)
         # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
         nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
-        val_loss += nll.data.cpu().numpy()[0]
+        val_loss += nll.item()
     val_loss /= len(val_iter)
     model.train()
     return np.exp(val_loss)
