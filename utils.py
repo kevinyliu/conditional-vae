@@ -3,10 +3,13 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
+from tqdm import tqdm
 from torchtext import data
 from torchtext import datasets
 from torchtext.vocab import GloVe
 import spacy
+import numpy as np
+
 
 def torchtext_extract(d=-1, MAX_LEN=20, MIN_FREQ=5, BATCH_SIZE=32):
     spacy_de = spacy.load('de')
@@ -35,12 +38,30 @@ def torchtext_extract(d=-1, MAX_LEN=20, MIN_FREQ=5, BATCH_SIZE=32):
 
     return train_iter, val_iter, test, DE, EN
 
+
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-# TODO
-def perplexity():
-    pass
+
+def perplexity(model, val_iter, gpu=True):
+    model.eval()
+    loss = nn.NLLLoss(ignore_index=1)  # ignore <pad> TODO check that this is the right index for pad
+    val_loss = 0
+    for batch in tqdm(val_iter):
+        if gpu:
+            src, trg = batch.src.cuda(), batch.trg.cuda()
+
+        else:
+            src, trg = batch.src, batch.trg
+
+        ll, _ = model.forward(src, trg)
+        # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
+        nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
+        val_loss += nll.data.cpu().numpy()[0]
+    val_loss /= len(val_iter)
+    model.train()
+    return np.exp(val_loss)
+
 
 # TODO
 def bleu():
