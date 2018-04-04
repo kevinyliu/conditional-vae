@@ -26,7 +26,6 @@ class Beam(object):
         self.scores = None  # dimension: width (singleton)
         self.model = model
         self.eos = eos
-        self.pad = pad
 
         # run encoder
         self.encoded_src, self.p_normal = self.model.encode(src)
