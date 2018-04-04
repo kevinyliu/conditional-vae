@@ -45,7 +45,8 @@ def count_parameters(model):
 
 def perp_bound(model, val_iter, gpu=True):
     """
-    Calculates bound on perplexity using ELBO. This only works for VAE models.
+    Calculates bound on perplexity using ELBO.
+    This only works for VAE models.
     """
     model.eval()
     loss = nn.NLLLoss(ignore_index=1)  # ignore <pad> TODO check that this is the right index for pad
@@ -68,7 +69,8 @@ def perp_bound(model, val_iter, gpu=True):
 
 def perplexity(model, val_iter, gpu=True):
     """
-    Calculates perplexity. This does not work for VAE.
+    Calculates perplexity.
+    This does not work for VAE.
     """
     model.eval()
     loss = nn.NLLLoss(ignore_index=1)  # ignore <pad> TODO check that this is the right index for pad
@@ -87,6 +89,9 @@ def perplexity(model, val_iter, gpu=True):
     val_loss /= len(val_iter)
     model.train()
     return np.exp(val_loss)
+
+
+def beam_search
 
 
 # TODO
