@@ -36,7 +36,7 @@ class Beam(object):
         else:
             init_pred = init_pred.type_as(torch.LongTensor())
 
-        cur_scores, self.hidden = self.model.generate(init_pred.view(1, -1), self.p_normal, self.encoded_src)
+        cur_scores, self.hidden = self.model.generate(init_pred.view(1, -1), self.p_normal.sample(), self.encoded_src)
 
         # TODO: filter function for list of tokens like bellow
         # # filter out pad and end of sentence tokens
