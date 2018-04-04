@@ -43,7 +43,33 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
+def perp_bound(model, val_iter, gpu=True):
+    """
+    Calculates bound on perplexity using ELBO. This only works for VAE models.
+    """
+    model.eval()
+    loss = nn.NLLLoss(ignore_index=1)  # ignore <pad> TODO check that this is the right index for pad
+    val_loss = 0
+    for batch in tqdm(val_iter):
+        if gpu:
+            src, trg = batch.src.cuda(), batch.trg.cuda()
+
+        else:
+            src, trg = batch.src, batch.trg
+
+        ll, kl, _ = model.forward(src, trg)
+        # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
+        nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
+        val_loss += nll.data.cpu().numpy()[0] + kl.data.cpu().numpy()[0]
+    val_loss /= len(val_iter)
+    model.train()
+    return np.exp(val_loss)
+
+
 def perplexity(model, val_iter, gpu=True):
+    """
+    Calculates perplexity. This does not work for VAE.
+    """
     model.eval()
     loss = nn.NLLLoss(ignore_index=1)  # ignore <pad> TODO check that this is the right index for pad
     val_loss = 0
