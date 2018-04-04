@@ -19,5 +19,5 @@ class BasicDecoder(nn.Module):
         x = torch.cat((x, z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
         output, hidden = self.lstm(x, hidden)
         output = self.dropout(output)
-        output = F.softmax(self.linear(output), dim=2)
+        output = F.log_softmax(self.linear(output), dim=2)
         return output, hidden

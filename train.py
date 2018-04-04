@@ -18,16 +18,16 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         for batch in tqdm(train_iter):
             src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
 
-            ll, hidden, mu_prior, log_var_prior, mu_posterior, log_var_posterior = model(src, trg)
+            ll, kl, hidden = model(src, trg)
 
             nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
             
-            kl = torch.sum(0.5 * (((mu_prior - mu_posterior)**2 + torch.exp(log_var_posterior)) / torch.exp(log_var_prior) + (log_var_prior - log_var_posterior) - 1))
+            # kl = torch.sum(0.5 * (((mu_prior - mu_posterior)**2 + torch.exp(log_var_posterior)) / torch.exp(log_var_prior) + (log_var_prior - log_var_posterior) - 1))
             
             neg_elbo = nll + kl
 
-            train_nll += nll.data
-            train_kl += kl.data
+            train_nll += nll.item()
+            train_kl += kl.item()
 
             optimizer.zero_grad()
             neg_elbo.backward()
@@ -40,7 +40,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         results = 'Epoch: {} Loss: {:.4f} NLL: {:.4f} KL: {:.4f}'.format(epoch+1, train_loss, train_nll, train_kl)
         print(results)
 
-        if not (epoch + 1) % 10:
+        if not (epoch + 1) % 1:
             local_path = os.getcwd()
             model_path = local_path + "/" + model_name
             if not os.path.exists(model_path):
