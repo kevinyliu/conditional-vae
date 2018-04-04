@@ -91,7 +91,8 @@ def perplexity(model, val_iter, gpu=True):
     return np.exp(val_loss)
 
 
-def beam_search
+def beam_search():
+    pass
 
 
 # TODO
