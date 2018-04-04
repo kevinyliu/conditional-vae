@@ -39,7 +39,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
 
         val_perp = utils.perplexity(model, val_iter, gpu)
 
-        results = 'Epoch: {} ValPerpBound: {} NLLBound: {:.4f} RE: {:.4f} KL: {:.4f}'.format(epoch+1, val_perp, train_loss, train_nll, train_kl)
+        results = 'Epoch: {} ValPerpBound: {:.4f} NLLBound: {:.4f} RE: {:.4f} KL: {:.4f}'.format(epoch+1, val_perp, train_loss, train_nll, train_kl)
         print(results)
 
         if not (epoch + 1) % 1:
