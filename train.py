@@ -26,8 +26,8 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             
             neg_elbo = nll + kl
 
-            train_nll += nll.data[0]
-            train_kl += kl.data[0]
+            train_nll += nll.data
+            train_kl += kl.data
 
             optimizer.zero_grad()
             neg_elbo.backward()
