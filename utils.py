@@ -90,10 +90,6 @@ def perplexity(model, val_iter, gpu=True):
     model.train()
     return np.exp(val_loss)
 
-
-def beam_search
-
-
 # TODO
 def bleu():
     pass

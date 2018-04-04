@@ -9,6 +9,7 @@ from encoder import Encoder
 from decoder import BasicDecoder
 from inferer import Prior, ApproximatePosterior
 
+
 class CVAE(nn.Module):
     def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers):
         super(CVAE, self).__init__()
@@ -18,14 +19,16 @@ class CVAE(nn.Module):
         self.p = Prior(hidden_size, latent_size)
         self.q = ApproximatePosterior(hidden_size, latent_size)
 
-    def reparameterize(self, mu, log_var):
-        eps = Variable(torch.randn(mu.size(0), mu.size(1)))
-        if mu.is_cuda:
-            eps = eps.cuda()
-        return mu + eps * torch.exp(log_var/2)
+    def encode(self, src):
+        encoded_src = self.src_encoder(src)
+        mu_prior, log_var_prior = self.p(encoded_src)
+        p_normal = Normal(loc=mu_prior, scale=log_var_prior.mul(0.5).exp())
+        return encoded_src, p_normal
 
-    # def step():
-    #     pass
+    def generate(self, trg, p_normal, encoded_src, hidden=None):
+        z = p_normal.sample()
+        ll, hidden = self.decoder(trg, z, encoded_src, hidden)
+        return ll, hidden
 
     def forward(self, src, trg):
         encoded_src = self.src_encoder(src)
