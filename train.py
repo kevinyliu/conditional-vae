@@ -10,7 +10,7 @@ import numpy as np
 def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, factor=0.5, threshold=1e-3)
-    loss = nn.NLLLoss(size_average=False)
+    loss = nn.NLLLoss(size_average=False) # TODO: ignore pad and other characters during training
     for epoch in range(num_epochs):
         model.train()
         train_nre = 0
@@ -37,7 +37,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         train_kl /= len(train_iter.dataset)
         train_elbo = train_nre + train_kl
 
-        val_elbo, val_perp = utils.perp_bound(model, val_iter, gpu)
+        val_perp, val_elbo, val_nre, val_kl = utils.perp_bound(model, val_iter, gpu)
 
         results = 'Epoch: {} VPB: {:.4f} VNELBO: {:.4f} TNELBO: {:.4f} RE: {:.4f} KL: {:.4f}'\
             .format(epoch+1, val_perp, val_elbo, train_elbo, train_nre, train_kl)

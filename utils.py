@@ -49,22 +49,28 @@ def perp_bound(model, val_iter, gpu=True):
     This only works for VAE models.
     """
     model.eval()
-    loss = nn.NLLLoss(ignore_index=1)  # ignore <pad> TODO check that this is the right index for pad
-    val_elbo = 0
+    loss = nn.NLLLoss(size_average=False)  # ignore <pad> TODO check that this is the right index for pad
+    val_nre = 0
+    val_kl = 0
     for batch in tqdm(val_iter):
-        if gpu:
-            src, trg = batch.src.cuda(), batch.trg.cuda()
+        src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
 
-        else:
-            src, trg = batch.src, batch.trg
+        re, kl, hidden = model(src, trg)
 
-        re, kl, _ = model.forward(src, trg)
-        # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
         nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
-        val_elbo += nre.item() + kl.item()
-    val_elbo /= len(val_iter.dataset)
+
+        # kl = torch.sum(0.5 * (((mu_prior - mu_posterior)**2 + torch.exp(log_var_posterior)) / torch.exp(log_var_prior) + (log_var_prior - log_var_posterior) - 1))
+
+        neg_elbo = nre + kl
+
+        val_nre += nre.item()
+        val_kl += kl.item()
+
+    val_nre /= len(val_iter.dataset)
+    val_kl /= len(val_iter.dataset)
+    val_elbo = val_nre + val_kl
     model.train()
-    return val_elbo, np.exp(val_elbo)
+    return np.exp(val_elbo), val_elbo, val_nre, val_kl  
 
 
 def perplexity(model, val_iter, gpu=True):
