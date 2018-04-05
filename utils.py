@@ -43,7 +43,7 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def perp_bound(model, val_iter, filter_token=None, gpu=True):
+def perp_bound(model, val_iter, filter_token=-1, gpu=True):
     """
     Calculates bound on perplexity using ELBO.
     This only works for VAE models.
@@ -72,7 +72,7 @@ def perp_bound(model, val_iter, filter_token=None, gpu=True):
     return np.exp(val_elbo), val_elbo, val_nre, val_kl  
 
 
-def perplexity(model, val_iter, filter_token=None, gpu=True):
+def perplexity(model, val_iter, filter_token=-1, gpu=True):
     """
     Calculates perplexity.
     This does not work for VAE.
