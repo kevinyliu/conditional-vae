@@ -41,8 +41,8 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         val_perp, val_elbo, val_nre, val_kl = utils.perp_bound(model, val_iter, gpu)
 
         results = 'Epoch: {}\n' \
-                  '\tVPB: {:.4f} VNELBO: {:.4f} VRE: {:.4f} TKL: {:.4f}' \
-                  '\tTPB: {:.4f} TNELBO: {:.4f} TRE: {:.4f} VKL: {:.4f}'\
+                  '\tVPB: {:.4f} VNELBO: {:.4f} VRE: {:.4f} TKL: {:.4f}\n' \
+                  '\tTPB: {:.4f} TNELBO: {:.4f} TRE: {:.4f} VKL: {:.4f}\n'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
                     np.exp(train_elbo), train_elbo, train_nre, train_kl)
 
