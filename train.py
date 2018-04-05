@@ -36,11 +36,16 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         train_nre /= len(train_iter.dataset)
         train_kl /= len(train_iter.dataset)
         train_elbo = train_nre + train_kl
+        train_perp = np.exp(train_elbo)
 
         val_perp, val_elbo, val_nre, val_kl = utils.perp_bound(model, val_iter, gpu)
 
-        results = 'Epoch: {} VPB: {:.4f} VNELBO: {:.4f} TNELBO: {:.4f} RE: {:.4f} KL: {:.4f}'\
-            .format(epoch+1, val_perp, val_elbo, train_elbo, train_nre, train_kl)
+        results = 'Epoch: {}\n' \
+                  '\tVPB: {:.4f} VNELBO: {:.4f} VRE: {:.4f} TKL: {:.4f}' \
+                  '\tTPB: {:.4f} TNELBO: {:.4f} TRE: {:.4f} VKL: {:.4f}'\
+            .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
+                    np.exp(train_elbo), train_elbo, train_nre, train_kl)
+
         print(results)
 
         if not (epoch + 1) % 1:

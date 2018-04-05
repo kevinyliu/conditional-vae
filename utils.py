@@ -59,10 +59,6 @@ def perp_bound(model, val_iter, gpu=True):
 
         nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
 
-        # kl = torch.sum(0.5 * (((mu_prior - mu_posterior)**2 + torch.exp(log_var_posterior)) / torch.exp(log_var_prior) + (log_var_prior - log_var_posterior) - 1))
-
-        neg_elbo = nre + kl
-
         val_nre += nre.item()
         val_kl += kl.item()
 
