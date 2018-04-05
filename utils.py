@@ -49,21 +49,24 @@ def perp_bound(model, val_iter, gpu=True):
     This only works for VAE models.
     """
     model.eval()
-    loss = nn.NLLLoss(size_average=False)  # ignore <pad> TODO check that this is the right index for pad
+    loss = nn.NLLLoss(size_average=True)  # ignore <pad> TODO check that this is the right index for pad
     val_nre = 0
     val_kl = 0
     for batch in tqdm(val_iter):
         src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
 
         re, kl, hidden = model(src, trg)
-
+        
+        kl = kl.sum() / len(kl)
         nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
+
+        neg_elbo = nre + kl
 
         val_nre += nre.item()
         val_kl += kl.item()
 
-    val_nre /= len(val_iter.dataset)
-    val_kl /= len(val_iter.dataset)
+    val_nre /= len(val_iter)
+    val_kl /= len(val_iter)
     val_elbo = val_nre + val_kl
     model.train()
     return np.exp(val_elbo), val_elbo, val_nre, val_kl  
@@ -75,7 +78,7 @@ def perplexity(model, val_iter, gpu=True):
     This does not work for VAE.
     """
     model.eval()
-    loss = nn.NLLLoss(ignore_index=1)  # ignore <pad> TODO check that this is the right index for pad
+    loss = nn.NLLLoss(size_average=True)  # TODO remove pad form this calc
     val_loss = 0
     for batch in tqdm(val_iter):
         if gpu:
@@ -88,9 +91,9 @@ def perplexity(model, val_iter, gpu=True):
         # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
         nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
         val_loss += nll.item()
-    val_loss /= len(val_iter.dataset)
+    val_loss /= len(val_iter)
     model.train()
-    return np.exp(val_loss)
+    return np.exp(val_loss), val_loss
 
 
 def bleu(reference, predict):

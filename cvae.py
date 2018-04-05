@@ -22,9 +22,7 @@ class CVAE(nn.Module):
         return self.src_encoder(src) 
 
     def generate(self, trg, encoded_src, hidden=None):
-        mu_prior, log_var_prior = self.p(encoded_src)
-        p_normal = Normal(loc=mu_prior, scale=log_var_prior.mul(0.5).exp())
-        z = p_normal.sample()
+        z, _ = self.p(encoded_src) # at eval time, we don't sample, we just use the mean
         ll, hidden = self.decoder(trg, z, encoded_src, hidden)
         return ll, hidden
 
@@ -37,12 +35,10 @@ class CVAE(nn.Module):
 
         p_normal = Normal(loc=mu_prior, scale=log_var_prior.mul(0.5).exp())
         q_normal = Normal(loc=mu_posterior, scale=log_var_posterior.mul(0.5).exp())
-        kl = kl_divergence(q_normal, p_normal).sum()
+        kl = kl_divergence(q_normal, p_normal)
 
-        # z = self.reparameterize(mu_posterior, log_var_posterior)
         z = q_normal.rsample()
 
         ll, hidden = self.decoder(trg, z, encoded_src)
 
         return ll, kl, hidden
-               # //mu_prior, log_var_prior, mu_posterior, log_var_posterior

@@ -10,7 +10,7 @@ import numpy as np
 def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, factor=0.5, threshold=1e-3)
-    loss = nn.NLLLoss(size_average=False) # TODO: ignore pad and other characters during training
+    loss = nn.NLLLoss(size_average=True) # TODO: ignore pad and other characters during training
     for epoch in range(num_epochs):
         model.train()
         train_nre = 0
@@ -19,10 +19,9 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
 
             re, kl, hidden = model(src, trg)
-
-            nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
             
-            # kl = torch.sum(0.5 * (((mu_prior - mu_posterior)**2 + torch.exp(log_var_posterior)) / torch.exp(log_var_prior) + (log_var_prior - log_var_posterior) - 1))
+            kl = kl.sum() / len(kl)
+            nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
             
             neg_elbo = nre + kl
 
@@ -33,8 +32,8 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             neg_elbo.backward()
             optimizer.step()
 
-        train_nre /= len(train_iter.dataset)
-        train_kl /= len(train_iter.dataset)
+        train_nre /= len(train_iter)
+        train_kl /= len(train_iter)
         train_elbo = train_nre + train_kl
         train_perp = np.exp(train_elbo)
 
@@ -42,7 +41,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
 
         results = 'Epoch: {}\n' \
                   '\tVPB: {:.4f} VNELBO: {:.4f} VRE: {:.4f} TKL: {:.4f}\n' \
-                  '\tTPB: {:.4f} TNELBO: {:.4f} TRE: {:.4f} VKL: {:.4f}\n'\
+                  '\tTPB: {:.4f} TNELBO: {:.4f} TRE: {:.4f} VKL: {:.4f}'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
                     np.exp(train_elbo), train_elbo, train_nre, train_kl)
 

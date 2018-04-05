@@ -4,12 +4,12 @@ import torch.nn.functional as F
 import utils
 from tqdm import tqdm
 import os
-
+import numpy as np
 
 def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, factor=0.5, threshold=1e-3)
-    loss = nn.NLLLoss(size_average=False)
+    loss = nn.NLLLoss(size_average=True)
     for epoch in range(num_epochs):
         model.train()
         train_nll = 0
@@ -26,11 +26,15 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             nll.backward()
             optimizer.step()
 
-        train_nll /= len(train_iter.dataset)
+        train_nll /= len(train_iter)
+        train_perp = np.exp(train_nll)
 
-        val_perp = utils.perplexity(model, val_iter, gpu)
+        val_perp, val_nll = utils.perplexity(model, val_iter, gpu)
 
-        results = 'Epoch: {} VPB: {:.4f} NLL: {:.4f}'.format(epoch+1, val_perp, train_nll)
+        results = 'Epoch: {}\n' \
+                  '\tVP: {:.4f} VNLL: {:.4f}\n' \
+                  '\tTP: {:.4f} TNLL: {:.4f}'\
+                  .format(epoch+1, val_perp, val_nll, train_perp, train_nll)
         print(results)
 
         if not (epoch + 1) % 1:
