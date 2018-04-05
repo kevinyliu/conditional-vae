@@ -43,13 +43,13 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def perp_bound(model, val_iter, gpu=True):
+def perp_bound(model, val_iter, filter_token=None, gpu=True):
     """
     Calculates bound on perplexity using ELBO.
     This only works for VAE models.
     """
     model.eval()
-    loss = nn.NLLLoss(size_average=True)  # ignore <pad> TODO check that this is the right index for pad
+    loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
     val_nre = 0
     val_kl = 0
     for batch in tqdm(val_iter):
@@ -72,13 +72,13 @@ def perp_bound(model, val_iter, gpu=True):
     return np.exp(val_elbo), val_elbo, val_nre, val_kl  
 
 
-def perplexity(model, val_iter, gpu=True):
+def perplexity(model, val_iter, filter_token=None, gpu=True):
     """
     Calculates perplexity.
     This does not work for VAE.
     """
     model.eval()
-    loss = nn.NLLLoss(size_average=True)  # TODO remove pad form this calc
+    loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
     val_loss = 0
     for batch in tqdm(val_iter):
         if gpu:
