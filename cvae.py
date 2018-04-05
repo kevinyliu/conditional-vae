@@ -20,12 +20,11 @@ class CVAE(nn.Module):
         self.q = ApproximatePosterior(hidden_size, latent_size)
 
     def encode(self, src):
-        encoded_src = self.src_encoder(src)
+        return self.src_encoder(src) 
+
+    def generate(self, trg, encoded_src, hidden=None):
         mu_prior, log_var_prior = self.p(encoded_src)
         p_normal = Normal(loc=mu_prior, scale=log_var_prior.mul(0.5).exp())
-        return encoded_src, p_normal
-
-    def generate(self, trg, p_normal, encoded_src, hidden=None):
         z = p_normal.sample()
         ll, hidden = self.decoder(trg, z, encoded_src, hidden)
         return ll, hidden

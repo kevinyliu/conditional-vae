@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import utils
 from tqdm import tqdm
 import os
-
+import numpy as np
 
 def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
@@ -39,7 +39,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
 
         val_perp = utils.perp_bound(model, val_iter, gpu)
 
-        results = 'Epoch: {} ValPerpBound: {:.4f} NLLBound: {:.4f} RE: {:.4f} KL: {:.4f}'.format(epoch+1, val_perp, train_loss, train_nll, train_kl)
+        results = 'Epoch: {} VPB: {:.4f} VNELBO: {:.4f} TNELBO: {:.4f} RE: {:.4f} KL: {:.4f}'.format(epoch+1, val_perp, np.log(val_perp), train_loss, train_nll, train_kl)
         print(results)
 
         if not (epoch + 1) % 1:
@@ -56,6 +56,6 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             with open(eval_file, "a") as f:
                 f.write("{}: {}\n".format(epoch + 1, results))
 
-            if checkpoint:
+            if checkpoint and not (epoch + 1) % 3:
                 model_file = model_path + "/" + str(epoch + 1) + ".pt"
                 torch.save(model, model_file)

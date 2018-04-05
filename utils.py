@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-
 from tqdm import tqdm
 from torchtext import data
 from torchtext import datasets
 from torchtext.vocab import GloVe
+
+from nltk.translate import bleu_score
 import spacy
 import numpy as np
 
@@ -91,10 +92,34 @@ def perplexity(model, val_iter, gpu=True):
     return np.exp(val_loss)
 
 
-def beam_search():
-    pass
+def bleu(reference, predict):
+    """Compute sentence-level bleu score.
+    Args:
+        reference (list[str])
+        predict (list[str])
+    """
+
+    if len(predict) == 0:
+        if len(reference) == 0:
+            return 1.0
+        else:
+            return 0.0
+
+    # use a maximum of 4-grams. If 4-grams aren't present, use only lower n-grams.
+    n = min(4, len(reference), len(predict))
+    weights = tuple([1. / n] * n)  # uniform weight on n-gram precisions
+    return bleu_score.sentence_bleu([reference], predict, weights, emulate_multibleu=False)
 
 
-# TODO
-def bleu():
-    pass
+def rouge(reference, predict, rouge_type='rouge-1'):
+    """
+    Compute rouge score.
+    Args:
+        reference (list[str])
+        predict (list[str])
+        rouge_type 'rouge-1', 'rouge-2', 'rouge-l'
+    """
+    from rouge import Rouge
+    rouge = Rouge()
+    scores = rouge.get_scores(' '.join(predict), ' '.join(reference))
+    return scores[0][rouge_type]['f']
