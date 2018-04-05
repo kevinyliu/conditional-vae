@@ -49,7 +49,10 @@ def perp_bound(model, val_iter, filter_token=None, gpu=True):
     This only works for VAE models.
     """
     model.eval()
-    loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
+    if filter_token is None:
+        loss = nn.NLLLoss(size_average=True)
+    else:
+        loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
     val_nre = 0
     val_kl = 0
     for batch in tqdm(val_iter):
@@ -78,8 +81,11 @@ def perplexity(model, val_iter, filter_token=None, gpu=True):
     This does not work for VAE.
     """
     model.eval()
-    loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
-    val_loss = 0
+    if filter_token is None:
+        loss = nn.NLLLoss(size_average=True)
+    else:
+        loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
+        val_loss = 0
     for batch in tqdm(val_iter):
         if gpu:
             src, trg = batch.src.cuda(), batch.trg.cuda()
