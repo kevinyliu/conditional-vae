@@ -32,7 +32,7 @@ def beam_search(k, max_len, model, src, bos, eos, filter_token=None, gpu=True):
 
             # keep sentences ending in '</s>' as candidates
             if last_word == eos:
-                options.append((lprob, sentence, current_state))
+                options.append((lprob, sentence, hidden))
 
             else:
                 last_word_input = torch.tensor([last_word], requires_grad=False).long().view(1, 1)

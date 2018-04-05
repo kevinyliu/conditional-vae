@@ -12,9 +12,15 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, factor=0.5, threshold=1e-3)
     pad = TRG_TEXT.vocab.stoi['<pad>']
     loss = nn.NLLLoss(size_average=True, ignore_index=pad)
-
     for epoch in range(num_epochs):
         model.train()
+        
+        # schedule training so that weight of KL starts at 0 and goes to 1
+        # sigmoidal schedule 
+        # TODO: check that this makes sense
+        alpha = torch.tensor(2 * (1/(1 + np.exp(-epoch)) - 1/2), requires_grad=False)
+        if gpu: alpha = alpha.cuda()
+            
         train_nre = 0
         train_kl = 0
         for batch in tqdm(train_iter):
@@ -24,8 +30,8 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             
             kl = kl.sum() / len(kl)
             nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
-            
-            neg_elbo = nre + kl
+             
+            neg_elbo = nre + alpha * kl
 
             train_nre += nre.item()
             train_kl += kl.item()
