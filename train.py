@@ -20,7 +20,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
 
             re, kl, hidden = model(src, trg)
 
-            nre = loss(ll[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
+            nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
             
             # kl = torch.sum(0.5 * (((mu_prior - mu_posterior)**2 + torch.exp(log_var_posterior)) / torch.exp(log_var_prior) + (log_var_prior - log_var_posterior) - 1))
             
