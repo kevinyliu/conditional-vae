@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
 
 import numpy as np
 from tqdm import tqdm
+
 
 def beam_search(k, max_len, model, src, bos, eos, gpu=True):
     """
@@ -40,10 +40,10 @@ def beam_search(k, max_len, model, src, bos, eos, gpu=True):
                 lprobs, new_hidden = model.generate(last_word_input, encoded_src, hidden)
                 # Add top k candidates to options list for next word
 
-        lprobs = lprobs.squeeze()
-        for index in torch.topk(lprobs, k)[1]:         
-            option = (lprobs[index].item() + lprob, sentence + [index], new_hidden) 
-            options.append(option)
+                lprobs = lprobs.squeeze()
+                for index in torch.topk(lprobs, k)[1]:
+                    option = (lprobs[index].item() + lprob, sentence + [index], new_hidden)
+                    options.append(option)
 
         options.sort(key = lambda x: x[0], reverse=True) # sort by lprob
         best_options = options[:k] # place top candidates in beam

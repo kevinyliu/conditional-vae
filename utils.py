@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
 from tqdm import tqdm
 from torchtext import data
@@ -51,7 +50,7 @@ def perp_bound(model, val_iter, gpu=True):
     """
     model.eval()
     loss = nn.NLLLoss(ignore_index=1)  # ignore <pad> TODO check that this is the right index for pad
-    val_loss = 0
+    val_elbo = 0
     for batch in tqdm(val_iter):
         if gpu:
             src, trg = batch.src.cuda(), batch.trg.cuda()
@@ -59,13 +58,13 @@ def perp_bound(model, val_iter, gpu=True):
         else:
             src, trg = batch.src, batch.trg
 
-        ll, kl, _ = model.forward(src, trg)
+        re, kl, _ = model.forward(src, trg)
         # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
-        nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
-        val_loss += nll.item() + kl.item()
-    val_loss /= len(val_iter)
+        nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
+        val_elbo += nre.item() + kl.item()
+    val_elbo /= len(val_iter.dataset)
     model.train()
-    return np.exp(val_loss)
+    return val_elbo, np.exp(val_elbo)
 
 
 def perplexity(model, val_iter, gpu=True):
@@ -87,7 +86,7 @@ def perplexity(model, val_iter, gpu=True):
         # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
         nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
         val_loss += nll.item()
-    val_loss /= len(val_iter)
+    val_loss /= len(val_iter.dataset)
     model.train()
     return np.exp(val_loss)
 

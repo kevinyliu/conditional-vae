@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
 
 from encoder import Encoder
+
 
 # vanilla seq2seq decoder
 class BasicDecoder(nn.Module):
@@ -16,8 +16,6 @@ class BasicDecoder(nn.Module):
         self.dropout = nn.Dropout(p=dpt)
 
     def forward(self, trg, encoded_src, hidden=None):
-        batch_size = trg.size(1)
-
         trg_len = trg.size(0)
         batch_size = trg.size(1)
         h_src = encoded_src[-1,:,:].view(1, batch_size, -1)
@@ -28,6 +26,7 @@ class BasicDecoder(nn.Module):
         output = torch.cat((output, h_src.repeat(trg_len,1,1)), dim=2)
         output = F.log_softmax(self.linear(output), dim=2)
         return output, hidden
+
 
 # vanilla seq2seq model
 class Seq2Seq(nn.Module):

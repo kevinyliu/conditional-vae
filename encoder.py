@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
+
 class Encoder(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.2):
         super(Encoder, self).__init__()
