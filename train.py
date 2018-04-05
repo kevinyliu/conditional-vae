@@ -37,7 +37,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         train_elbo = train_nre + train_kl
         train_perp = np.exp(train_elbo)
 
-        val_perp, val_elbo, val_nre, val_kl = utils.perp_bound(model, val_iter, gpu)
+        val_perp, val_elbo, val_nre, val_kl = utils.perp_bound(model, val_iter, gpu=gpu)
 
         results = 'Epoch: {}\n' \
                   '\tVPB: {:.4f} VNELBO: {:.4f} VRE: {:.4f} TKL: {:.4f}\n' \
