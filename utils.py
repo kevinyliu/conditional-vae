@@ -43,13 +43,16 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def perp_bound(model, val_iter, filter_token=-1, gpu=True):
+def perp_bound(model, val_iter, filter_token=None, gpu=True):
     """
     Calculates bound on perplexity using ELBO.
     This only works for VAE models.
     """
     model.eval()
-    loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
+    if filter_token is None:
+        loss = nn.NLLLoss(size_average=True)
+    else:
+        loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
     val_nre = 0
     val_kl = 0
     for batch in tqdm(val_iter):
@@ -72,14 +75,17 @@ def perp_bound(model, val_iter, filter_token=-1, gpu=True):
     return np.exp(val_elbo), val_elbo, val_nre, val_kl  
 
 
-def perplexity(model, val_iter, filter_token=-1, gpu=True):
+def perplexity(model, val_iter, filter_token=None, gpu=True):
     """
     Calculates perplexity.
     This does not work for VAE.
     """
     model.eval()
-    loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
-    val_loss = 0
+    if filter_token is None:
+        loss = nn.NLLLoss(size_average=True)
+    else:
+        loss = nn.NLLLoss(size_average=True, ignore_index=filter_token)
+        val_loss = 0
     for batch in tqdm(val_iter):
         if gpu:
             src, trg = batch.src.cuda(), batch.trg.cuda()
