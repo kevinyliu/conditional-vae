@@ -96,6 +96,21 @@ def eval_seq2seq(model, val_iter, pad, gpu=True):
     return np.exp(val_loss), val_loss
 
 
+# sigmoidal annealing schedule
+def kl_anneal_sigmoid(epoch, gpu=True):
+    alpha = torch.tensor(2 * (1/(1 + np.exp(-epoch/2)) - 1/2), requires_grad=False)
+    if gpu: alpha = alpha.cuda()
+    return alpha
+
+
+# linear annealing schedule
+def kl_anneal_linear(epoch, epoch_full=15, gpu=True):
+    alpha = min(1/epoch_full * epoch, 1)
+    alpha = torch.tensor(alpha, requires_grad=False)
+    if gpu: alpha = alpha.cuda()
+    return alpha
+
+
 def bleu(reference, predict):
     """Compute sentence-level bleu score.
     Args:

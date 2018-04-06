@@ -16,10 +16,8 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         model.train()
         
         # schedule training so that weight of KL starts at 0 and goes to 1
-        # sigmoidal schedule 
         # TODO: check that this makes sense
-        alpha = torch.tensor(2 * (1/(1 + np.exp(-epoch)) - 1/2), requires_grad=False)
-        if gpu: alpha = alpha.cuda()
+        alpha = utils.kl_anneal_linear(epoch, gpu=gpu)
             
         train_nre = 0
         train_kl = 0
