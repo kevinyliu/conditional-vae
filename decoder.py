@@ -14,7 +14,7 @@ class BasicDecoder(nn.Module):
         self.linear = nn.Linear(3*hidden_size, vocab_size)
         self.dropout = nn.Dropout(p=dpt)
 
-    def forward(self, trg, z, encoded_src, hidden=None, word_dpt=0.0):
+    def forward(self, trg, z, encoded_src, hidden=None, word_dpt=0.5):
         trg_len = trg.size(0)
         batch_size = trg.size(1)
         h_src = encoded_src[-1,:,:].view(1, batch_size, -1)
@@ -23,6 +23,8 @@ class BasicDecoder(nn.Module):
 
         # word dropout
         mask = torch.bernoulli((1 - word_dpt) * torch.ones(trg_len, batch_size)).unsqueeze(2).expand_as(x)
+        if x.is_cuda:
+            mask = mask.cuda()
         x = x * mask
 
         x = torch.cat((x, z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
