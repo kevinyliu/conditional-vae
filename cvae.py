@@ -4,19 +4,19 @@ import torch.nn.functional as F
 from torch.distributions import Normal
 from torch.distributions.kl import kl_divergence
 
-from encoder import Encoder
-from decoder import BasicDecoder
-from inferer import Prior, ApproximatePosterior
+import encoder
+import decoder
+import inferer
 
 
 class CVAE(nn.Module):
     def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers):
         super(CVAE, self).__init__()
-        self.src_encoder = Encoder(src_vocab_size, embed_size, hidden_size, num_layers)
-        self.trg_encoder = Encoder(trg_vocab_size, embed_size, hidden_size, num_layers)
-        self.decoder = BasicDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers)
-        self.p = Prior(hidden_size, latent_size)
-        self.q = ApproximatePosterior(hidden_size, latent_size)
+        self.src_encoder = encoder.Encoder(src_vocab_size, embed_size, hidden_size, num_layers)
+        self.trg_encoder = encoder.Encoder(trg_vocab_size, embed_size, hidden_size, num_layers)
+        self.decoder = decoder.BasicDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers)
+        self.p = inferer.Prior(hidden_size, latent_size)
+        self.q = inferer.ApproximatePosterior(hidden_size, latent_size)
 
     def encode(self, src):
         return self.src_encoder(src) 

@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 
-def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
+def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, factor=0.5, threshold=1e-3)
     pad = TRG_TEXT.vocab.stoi['<pad>']
@@ -17,7 +17,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         
         # schedule training so that weight of KL starts at 0 and goes to 1
         # TODO: check that this makes sense
-        alpha = utils.kl_anneal_linear(epoch, gpu=gpu)
+        alpha = anneal(epoch, gpu=gpu)
             
         train_nre = 0
         train_kl = 0
@@ -65,7 +65,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
                 f.close()
 
             with open(eval_file, "a") as f:
-                f.write("{}: {}\n".format(epoch + 1, results))
+                f.write("{}\n".format(results))
 
             if checkpoint and not (epoch + 1) % 3:
                 model_file = model_path + "/" + str(epoch + 1) + ".pt"

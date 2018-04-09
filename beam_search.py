@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-def beam_search(k, max_len, model, src, bos, eos, filter_token=None, gpu=True):
+def beam_search(model, src, bos, eos, k=10, max_len=100, filter_token=None, gpu=True):
     """
     works if batch size = 1
     """

@@ -10,6 +10,8 @@ from nltk.translate import bleu_score
 import spacy
 import numpy as np
 
+import beam_search
+
 
 def torchtext_extract(d=-1, MAX_LEN=20, MIN_FREQ=5, BATCH_SIZE=32):
     spacy_de = spacy.load('de')
@@ -41,6 +43,25 @@ def torchtext_extract(d=-1, MAX_LEN=20, MIN_FREQ=5, BATCH_SIZE=32):
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+def kl_anneal_sigmoid(epoch, gpu=True):
+    """
+    Sigmoidal annealing schedule for KL weight
+    """
+    alpha = torch.tensor(2 * (1/(1 + np.exp(-epoch/2)) - 1/2), requires_grad=False)
+    if gpu: alpha = alpha.cuda()
+    return alpha
+
+
+def kl_anneal_linear(epoch, epoch_full=15, gpu=True):
+    """
+    Linear annealing schedule for KL weight
+    """
+    alpha = min(1/epoch_full * epoch, 1)
+    alpha = torch.tensor(alpha, requires_grad=False)
+    if gpu: alpha = alpha.cuda()
+    return alpha
 
 
 def eval_vae(model, val_iter, pad, gpu=True):
@@ -96,23 +117,9 @@ def eval_seq2seq(model, val_iter, pad, gpu=True):
     return np.exp(val_loss), val_loss
 
 
-# sigmoidal annealing schedule
-def kl_anneal_sigmoid(epoch, gpu=True):
-    alpha = torch.tensor(2 * (1/(1 + np.exp(-epoch/2)) - 1/2), requires_grad=False)
-    if gpu: alpha = alpha.cuda()
-    return alpha
-
-
-# linear annealing schedule
-def kl_anneal_linear(epoch, epoch_full=15, gpu=True):
-    alpha = min(1/epoch_full * epoch, 1)
-    alpha = torch.tensor(alpha, requires_grad=False)
-    if gpu: alpha = alpha.cuda()
-    return alpha
-
-
 def bleu(reference, predict):
-    """Compute sentence-level bleu score.
+    """
+    Compute sentence-level bleu score.
     Args:
         reference (list[str])
         predict (list[str])
@@ -142,3 +149,51 @@ def rouge(reference, predict, rouge_type='rouge-1'):
     rouge = Rouge()
     scores = rouge.get_scores(' '.join(predict), ' '.join(reference))
     return scores[0][rouge_type]['f']
+
+
+def generate(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
+    """
+    Generates top 10 best sentences given trained model.
+    """
+    bos = TRG_TEXT.vocab.stoi['<s>']
+    eos = TRG_TEXT.vocab.stoi['</s>']
+    pad = TRG_TEXT.vocab.stoi['<pad>']
+    
+    filter_token = [pad] 
+    
+    output = []
+    
+    for batch in tqdm(eval_iter):
+        src = batch.src
+        for i in range(src.size(1)):
+            src_sent = src[:, i:i+1]
+            best_options = beam_search.beam_search(model, src_sent, bos, eos, k, max_len, filter_token, gpu)
+            
+            sentence = []
+            for word in best_options[0][1]:
+                sentence += [TRG_TEXT.vocab.itos[word]]
+            
+            output.append(sentence)
+    
+    return output
+
+
+def test_generation(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
+    """
+    Calls generate to get the generated sentences from beam search.
+    Then evaluates them with blue and rouge.
+    """
+    sentences = generate(model, eval_iter, TRG_TEXT, k, max_len, gpu)
+    b = 0
+    r = 0
+    index = 0
+    for batch in eval_iter:
+        trg = batch.trg
+        for i in range(trg.size(1)):
+            b += bleu(trg[:, i:i+1], sentences[index])
+            r += rouge(trg[:, i:i+1], sentences[index])
+        index += 1
+    b /= len(sentences)
+    r /= len(sentences)
+    
+    return b, r
