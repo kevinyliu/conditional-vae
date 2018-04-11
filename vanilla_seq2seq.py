@@ -13,6 +13,7 @@ class BasicDecoder(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embed_size)
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, dropout=dpt)
         self.linear = nn.Linear(3*hidden_size, vocab_size)
+#         self.linear = nn.Linear(hidden_size, vocab_size)
         self.dropout = nn.Dropout(p=dpt)
 
     def forward(self, trg, encoded_src, hidden=None):

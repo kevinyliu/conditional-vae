@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 # seq2seq decoder
 class BasicDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0):
         super(BasicDecoder, self).__init__()
         self.hidden_size = hidden_size
 
