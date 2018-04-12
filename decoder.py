@@ -82,7 +82,7 @@ class BahdanauAttnDecoder(nn.Module):
         annotations = encoded_src
         annot_scores = self.attn_annot(encoded_src)
         # init context vector as all 0s (dimension is B x 2N)
-        context = Variable(torch.zeros(encoded_src.size()[1:])).type_as(annotations)
+        context = torch.zeros(encoded_src.size()[1:]).type_as(annotations)
         all_scores = None
         for trg in trg_embeddings:
             output, hidden, context = self.step_forward(trg, hidden, context, annot_scores, annotations)

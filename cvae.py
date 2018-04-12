@@ -46,11 +46,11 @@ class BASIC_CVAE(nn.Module):
 
 
 class CVAE(nn.Module):
-    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers):
+    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2):
         super(CVAE, self).__init__()
-        self.src_encoder = encoder.Encoder(src_vocab_size, embed_size, hidden_size, num_layers)
-        self.trg_encoder = encoder.Encoder(trg_vocab_size, embed_size, hidden_size, num_layers)
-        self.decoder = decoder.BahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers)
+        self.src_encoder = encoder.Encoder(src_vocab_size, embed_size, hidden_size, num_layers, dpt)
+        self.trg_encoder = encoder.Encoder(trg_vocab_size, embed_size, hidden_size, num_layers, dpt)
+        self.decoder = decoder.BahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt)
         self.p = inferer.Prior(hidden_size, latent_size)
         self.q = inferer.ApproximatePosterior(hidden_size, latent_size)
 
