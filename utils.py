@@ -102,13 +102,9 @@ def eval_seq2seq(model, val_iter, pad, gpu=True):
     loss = nn.NLLLoss(size_average=True, ignore_index=pad)
     val_loss = 0
     for batch in tqdm(val_iter):
-        if gpu:
-            src, trg = batch.src.cuda(), batch.trg.cuda()
+        src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
 
-        else:
-            src, trg = batch.src, batch.trg
-
-        ll, _ = model.forward(src, trg)
+        ll, _ = model(src, trg)
         # we have to eliminate the <s> start of sentence token in the trg, otherwise it will not be aligned
         nll = loss(ll[:-1, :, :].view(-1, ll.size(2)), trg[1:, :].view(-1))
         val_loss += nll.item()
@@ -153,7 +149,7 @@ def rouge(reference, predict, rouge_type='rouge-1'):
 
 def generate(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     """
-    Generates top 10 best sentences given trained model.
+    Generates top k best sentences given trained model.
     """
     bos = TRG_TEXT.vocab.stoi['<s>']
     eos = TRG_TEXT.vocab.stoi['</s>']

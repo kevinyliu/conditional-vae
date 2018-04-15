@@ -9,12 +9,20 @@ class Seq2Seq(nn.Module):
     def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, num_layers, dpt=0.2):
         super(Seq2Seq, self).__init__()
         self.encoder = Encoder(src_vocab_size, embed_size, hidden_size, num_layers, dpt)
-        self.decoder = BasicBahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, num_layers, dpt)
+        self.decoder = BasicDecoder(trg_vocab_size, embed_size, hidden_size, num_layers, dpt)
+        #self.decoder = BasicBahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, num_layers, dpt)
 
+    def encode(self, src):
+        return self.encoder(src) 
+        
     def forward(self, src, trg):
         enc_output = self.encoder(src)
         output, hidden = self.decoder(trg, enc_output)
         return output, hidden
+    
+    def generate(self, trg, encoded_src, hidden=None):
+        ll, hidden = self.decoder(trg, encoded_src, hidden)
+        return ll, hidden
     
 
 # vanilla seq2seq decoder

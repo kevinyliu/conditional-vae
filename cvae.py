@@ -9,9 +9,9 @@ import decoder
 import inferer
 
 
-class BASIC_CVAE(nn.Module):
+class BasicCVAE(nn.Module):
     def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers):
-        super(CVAE, self).__init__()
+        super(BasicCVAE, self).__init__()
         self.src_encoder = encoder.Encoder(src_vocab_size, embed_size, hidden_size, num_layers)
         self.trg_encoder = encoder.Encoder(trg_vocab_size, embed_size, hidden_size, num_layers)
         self.decoder = decoder.BasicDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers)
