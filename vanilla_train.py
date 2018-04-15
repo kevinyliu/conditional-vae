@@ -51,8 +51,8 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
                 f.close()
 
             with open(eval_file, "a") as f:
-                f.write("{}: {}\n".format(epoch + 1, results))
+                f.write("{}\n".format(results))
 
-            if checkpoint:
+            if checkpoint and not (epoch + 1) % 3:
                 model_file = model_path + "/" + str(epoch + 1) + ".pt"
                 torch.save(model, model_file)

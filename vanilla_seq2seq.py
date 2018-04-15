@@ -14,16 +14,14 @@ class Seq2Seq(nn.Module):
 
     def encode(self, src):
         return self.encoder(src) 
+    
+    def generate(self, trg, enc_output, hidden=None):
+        return self.decoder(trg, enc_output, hidden)
         
     def forward(self, src, trg):
         enc_output = self.encoder(src)
         output, hidden = self.decoder(trg, enc_output)
         return output, hidden
-    
-    def generate(self, trg, encoded_src, hidden=None):
-        ll, hidden = self.decoder(trg, encoded_src, hidden)
-        return ll, hidden
-    
 
 # vanilla seq2seq decoder
 class BasicDecoder(nn.Module):

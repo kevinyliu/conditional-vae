@@ -7,6 +7,7 @@ train_iter, val_iter, test, DE, EN = utils.torchtext_extract()
 model_name = "vae_simple_noprior_30ep"
 
 gpu = True
+checkpt = True
 
 num_layers = 2
 embed_size = 100
@@ -29,4 +30,4 @@ if gpu:
     model.cuda()
 
     
-train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu)
+train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, checkpoint=checkpt)
