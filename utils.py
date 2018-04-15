@@ -164,34 +164,55 @@ def generate(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     output = []
     
     for batch in tqdm(eval_iter):
+        trg = batch.trg
         src = batch.src
         for i in range(src.size(1)):
             src_sent = src[:, i:i+1]
             best_options = beam_search.beam_search(model, src_sent, bos, eos, k, max_len, filter_token, gpu)
             
+            sentence_trg = ""
+            sentence_src = ""
             sentence = []
             for word in best_options[0][1]:
                 sentence += [TRG_TEXT.vocab.itos[word]]
+                sentence_src += TRG_TEXT.vocab.itos[word] + " "
+            for word in trg[: , i]:
+                sentence_trg += TRG_TEXT.vocab.itos[word] + " "
             
+#             print(sentence_src + "  |  " + sentence_trg)
             output.append(sentence)
     
     return output
 
-
+def strip(sentence):
+    while '<pad>' in sentence:
+        sentence.remove('<pad>')
+    while '<s>' in sentence:
+        sentence.remove('<s>')
+    while '</s>' in sentence:
+        sentence.remove('</s>')
+        
 def test_generation(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     """
     Calls generate to get the generated sentences from beam search.
     Then evaluates them with blue and rouge.
     """
     sentences = generate(model, eval_iter, TRG_TEXT, k, max_len, gpu)
+    for s in sentences:
+        strip(s)
     b = 0
     r = 0
     index = 0
     for batch in eval_iter:
         trg = batch.trg
         for i in range(trg.size(1)):
-            b += bleu(trg[:, i:i+1], sentences[index])
-            r += rouge(trg[:, i:i+1], sentences[index])
+            t = []
+            for word in trg[:, i]:
+                t += [TRG_TEXT.vocab.itos[word]]
+            strip(t)
+            b += bleu(t, sentences[index])
+#             print(bleu(t, sentences[index]))
+            r += rouge(t, sentences[index])
         index += 1
     b /= len(sentences)
     r /= len(sentences)

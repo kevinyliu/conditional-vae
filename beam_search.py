@@ -25,7 +25,7 @@ def beam_search(model, src, bos, eos, k=10, max_len=100, filter_token=None, gpu=
     
     for length in range(max_len):  # maximum target length
         options = []  # candidates
-
+        
         for lprob, sentence, hidden in best_options:
             # Prepare last word
             last_word = sentence[-1]
