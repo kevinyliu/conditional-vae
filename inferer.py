@@ -48,7 +48,7 @@ class ApproximatePosterior(nn.Module):
         return mu, log_var
 
 class AttentionApproximatePosterior(nn.Module):
-    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, latent_size):
+    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size):
         super(AttentionApproximatePosterior, self).__init__()
 
         self.latent_size = latent_size
@@ -56,8 +56,11 @@ class AttentionApproximatePosterior(nn.Module):
         
         self.src_embedding = nn.Embedding(src_vocab_size, embed_size)
         self.trg_embedding = nn.Embedding(trg_vocab_size, embed_size)
+        
+        self.linear_src = nn.Linear(2*embed_size, hidden_size)
+        self.linear_trg = nn.Linear(2*embed_size, hidden_size)
 
-        self.linear = nn.Linear(2*embed_size, latent_size)
+        self.linear = nn.Linear(2*hidden_size, latent_size)
         self.linear_mu = nn.Linear(latent_size, latent_size)
         self.linear_var = nn.Linear(latent_size, latent_size)
 
@@ -68,19 +71,18 @@ class AttentionApproximatePosterior(nn.Module):
         
         # Currently just basic dot attention on embeddings. May want to change later
         
-        attn_src = torch.bmm(x_src, x_trg.transpose(1, 2)) # b x t_o x t_i
+        attn_src = torch.bmm(x_trg, x_src.transpose(1, 2)) # b x t_o x t_i
         attn_src = F.softmax(attn_src, dim=2)
-        c_src = torch.bmm(attn_src, x_src).transpose(0, 1) # b x e x t_o
+        c_src = torch.bmm(attn_src, x_src) # b x t_o x e
         
-        attn_trg = torch.bmm(x_trg, x_src.transpose(1, 2)) # b x t_i x t_o
+        attn_trg = torch.bmm(x_src, x_trg.transpose(1, 2)) # b x t_i x t_o
         attn_trg = F.softmax(attn_trg, dim=2)
-        c_trg = torch.bmm(attn_trg, x_trg).transpose(1, 2) # b x e x t_i
+        c_trg = torch.bmm(attn_trg, x_trg) # b x t_i x e
         
+        v_src = F.tanh(self.linear_src(torch.cat((c_trg, x_src), dim=2)).sum(dim=1)) # b x h
+        v_trg = F.tanh(self.linear_trg(torch.cat((c_src, x_trg), dim=2)).sum(dim=1)) # b x h
         
-        
-        c_src = F.avg_pool1d(c_src, c_src.size(2)).view(c_src.size(0), -1)
-        c_trg = F.avg_pool1d(c_trg, c_trg.size(2)).view(c_trg.size(0), -1)
-        h_z = F.tanh(self.linear(torch.cat((c_src, c_trg), dim=1)))
+        h_z = F.tanh(self.linear(torch.cat((v_src, v_trg), dim=1)))
         mu = self.linear_mu(h_z)
         log_var = self.linear_var(h_z)
 
