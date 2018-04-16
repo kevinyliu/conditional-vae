@@ -37,8 +37,13 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
                   '\tVP: {:.4f} VNLL: {:.4f}\n' \
                   '\tTP: {:.4f} TNLL: {:.4f}'\
                   .format(epoch+1, val_perp, val_nll, train_perp, train_nll)
-        print(results)
+        
+        if not (epoch + 1) % 2:
+            bleu, _ = utils.test_generation(model, val_iter, TRG_TEXT, gpu=gpu)
+            results += '\n\tBLEU: {:.4f}'.format(bleu)
 
+        print(results)
+        
         if not (epoch + 1) % 1:
             local_path = os.getcwd()
             model_path = local_path + "/" + model_name

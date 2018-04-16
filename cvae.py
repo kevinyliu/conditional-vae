@@ -30,8 +30,8 @@ class BasicCVAE(nn.Module):
         encoded_src = self.src_encoder(src)
         encoded_trg = self.trg_encoder(trg)
 
-        mu_prior, log_var_prior = self.p(encoded_src)
-        mu_posterior, log_var_posterior = self.q(encoded_src, encoded_trg)
+        mu_prior, log_var_prior = self.p(src, encoded_src)
+        mu_posterior, log_var_posterior = self.q(src, encoded_src, trg, encoded_trg)
 
 #         p_normal = Normal(loc=torch.zeros(mu_prior.size()).cuda(), scale =torch.ones(log_var_prior.size()).cuda())
         p_normal = Normal(loc=mu_prior, scale=log_var_prior.mul(0.5).exp())

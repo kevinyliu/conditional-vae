@@ -207,7 +207,6 @@ def test_generation(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
                 t += [TRG_TEXT.vocab.itos[word]]
             strip(t)
             b += bleu(t, sentences[index])
-#             print(bleu(t, sentences[index]))
             r += rouge(t, sentences[index])
         index += 1
     b /= len(sentences)
