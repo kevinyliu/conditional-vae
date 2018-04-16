@@ -46,8 +46,8 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         val_perp, val_elbo, val_nre, val_kl = utils.eval_vae(model, val_iter, pad, gpu)
 
         results = 'Epoch: {}\n' \
-                  '\tVPB: {:.4f} VNELBO: {:.4f} VRE: {:.4f} TKL: {:.4f}\n' \
-                  '\tTPB: {:.4f} TNELBO: {:.4f} TRE: {:.4f} VKL: {:.4f}'\
+                  '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n' \
+                  '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
                     np.exp(train_elbo), train_elbo, train_nre, train_kl)
 

@@ -9,12 +9,12 @@ import decoder
 import inferer
 
 class CVAE(nn.Module):
-    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers):
+    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2):
         super(CVAE, self).__init__()
         self.src_encoder = encoder.Encoder(src_vocab_size, embed_size, hidden_size, num_layers)
         self.trg_encoder = encoder.Encoder(trg_vocab_size, embed_size, hidden_size, num_layers)
-        self.decoder = decoder.BasicDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers)
-        #self.decoder = decoder.BahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt)
+        #self.decoder = decoder.BasicDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers)
+        self.decoder = decoder.BahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt)
         self.p = inferer.Prior(hidden_size, latent_size)
         #self.q = inferer.ApproximatePosterior(hidden_size, latent_size)
         self.q = inferer.AttentionApproximatePosterior(src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size)
@@ -22,8 +22,8 @@ class CVAE(nn.Module):
     def encode(self, src):
         return self.src_encoder(src) 
 
-    def generate(self, trg, encoded_src, hidden=None):
-        z, _ = self.p(encoded_src) # at eval time, we don't sample, we just use the mean
+    def generate(self, trg, src, encoded_src, hidden=None):
+        z, _ = self.p(src, encoded_src) # at eval time, we don't sample, we just use the mean
         ll, hidden = self.decoder(trg, z, encoded_src, hidden)
         return ll, hidden
 

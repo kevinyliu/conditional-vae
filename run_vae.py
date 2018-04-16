@@ -4,15 +4,15 @@ import cvae
 
 train_iter, val_iter, test, DE, EN = utils.torchtext_extract()
 
-model_name = "vae_simple_noprior_30ep"
+model_name = "vae_attn_posterior"
 
 gpu = True
-checkpt = True
+checkpoint = True
 
-num_layers = 2
-embed_size = 100
-hidden_size = 100
-latent_size = 100
+num_layers = 4
+embed_size = 300
+hidden_size = 300
+latent_size = 300
 
 num_epochs=30
 
@@ -30,4 +30,4 @@ if gpu:
     model.cuda()
 
     
-train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, checkpoint=checkpt)
+train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, checkpoint=checkpoint)

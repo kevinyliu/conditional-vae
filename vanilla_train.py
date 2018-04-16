@@ -34,8 +34,8 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
         val_perp, val_nll = utils.eval_seq2seq(model, val_iter, pad, gpu)
 
         results = 'Epoch: {}\n' \
-                  '\tVP: {:.4f} VNLL: {:.4f}\n' \
-                  '\tTP: {:.4f} TNLL: {:.4f}'\
+                  '\tVALID PPL: {:.4f} NLL: {:.4f}\n' \
+                  '\tTRAIN PPL: {:.4f} NLL: {:.4f}'\
                   .format(epoch+1, val_perp, val_nll, train_perp, train_nll)
         
         if not (epoch + 1) % 2:
