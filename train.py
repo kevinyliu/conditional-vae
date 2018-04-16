@@ -51,6 +51,10 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
                     np.exp(train_elbo), train_elbo, train_nre, train_kl)
 
+        if not (epoch + 1) % 2:
+            bleu, _ = utils.test_generation(model, val_iter, TRG_TEXT, gpu=gpu)
+            results += '\n\tBLEU: {:.4f}'.format(bleu)
+
         print(results)
 
         if not (epoch + 1) % 1:
