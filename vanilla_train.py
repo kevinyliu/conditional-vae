@@ -6,9 +6,11 @@ from tqdm import tqdm
 import os
 import numpy as np
 
+
 def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
-    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=1, factor=0.5, threshold=1e-3)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=30, factor=0.25, verbose=True,
+                                                           cooldown=6)
     pad = TRG_TEXT.vocab.stoi['<pad>']
     loss = nn.NLLLoss(size_average=True, ignore_index=pad)
     

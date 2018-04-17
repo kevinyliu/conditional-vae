@@ -133,6 +133,39 @@ def bleu(reference, predict):
     return bleu_score.sentence_bleu([reference], predict, weights, emulate_multibleu=False)
 
 
+def moses_multi_bleu(outputs, references, lw=False):
+    '''Outputs, references are lists of strings. Calculates BLEU score using https://raw.githubusercontent.com/moses-smt/mosesdecoder/master/scripts/generic/multi-bleu.perl -- Python function from Google '''
+
+    # Save outputs and references as temporary text files
+    out_file = tempfile.NamedTemporaryFile()
+    out_file.write('\n'.join(outputs).encode('utf-8'))
+    out_file.write(b'\n')
+    out_file.flush()  # ?
+    ref_file = tempfile.NamedTemporaryFile()
+    ref_file.write('\n'.join(references).encode('utf-8'))
+    ref_file.write(b'\n')
+    ref_file.flush()  # ?
+    # Use moses multi-bleu script
+    with open(out_file.name, 'r') as read_pred:
+        bleu_cmd = ['./multi-bleu.perl']
+        bleu_cmd = bleu_cmd + ['-lc'] if lw else bleu_cmd
+        bleu_cmd = bleu_cmd + [ref_file.name]
+        try:
+            bleu_out = subprocess.check_output(bleu_cmd, stdin=read_pred, stderr=subprocess.STDOUT)
+            bleu_out = bleu_out.decode('utf-8')
+            # print(bleu_out)
+            bleu_score = float(re.search(r'BLEU = (.+?),', bleu_out).group(1))
+        except subprocess.CalledProcessError as error:
+            print(error)
+            raise Exception('Something wrong with bleu script')
+            bleu_score = 0.0
+
+    # Close temporary files
+    out_file.close()
+    ref_file.close()
+
+    return bleu_score
+
 def rouge(reference, predict, rouge_type='rouge-1'):
     """
     Compute rouge score.
@@ -213,3 +246,26 @@ def test_generation(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     r /= len(sentences)
     
     return b, r
+
+def test_multibleu(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
+
+    sentences = generate(model, eval_iter, TRG_TEXT, k, max_len, gpu)
+
+    sentences_out = []
+    for s in sentences:
+        strip(s)
+        sent = ' '.join(TRG.vocab.itos[j] for j in s)
+        sentences_out.append(sent)
+
+    sentences_ref = []
+    for batch in eval_iter:
+        trg = batch.trg
+        for i in range(trg.size(1)):
+            t = []
+            for word in trg[:, i]:
+                t += [TRG_TEXT.vocab.itos[word]]
+            strip(t)
+            sent_ref = ' '.join(TRG.vocab.itos[j] for j in t)
+            sentences_ref.append(sent_ref)
+
+    return moses_multi_bleu(sentences_out, sentences_ref)
