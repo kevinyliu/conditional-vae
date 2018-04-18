@@ -58,7 +58,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
                     np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_val)
 
         if not (epoch + 1) % 2:
-            bleu, _ = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
+            bleu = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
             results += '\n\tBLEU: {:.4f}'.format(bleu)
 
         print(results)
