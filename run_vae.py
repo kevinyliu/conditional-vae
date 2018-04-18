@@ -4,7 +4,7 @@ import cvae
 
 train_iter, val_iter, test, DE, EN = utils.torchtext_extract()
 
-model_name = "vae_attn_posterior"
+model_name = "vae_attn_posterior_basic_decoder"
 
 gpu = True
 checkpoint = True
@@ -29,5 +29,6 @@ model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_
 if gpu:
     model.cuda()
 
-    
+print("Number of parameters: {}".format(utils.count_parameters(model)))
+
 train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, checkpoint=checkpoint)

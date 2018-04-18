@@ -10,7 +10,8 @@ class Seq2Seq(nn.Module):
         super(Seq2Seq, self).__init__()
         self.encoder = Encoder(src_vocab_size, embed_size, hidden_size, num_layers, dpt)
         #self.decoder = BasicDecoder(trg_vocab_size, embed_size, hidden_size, num_layers, dpt)
-        self.decoder = BasicBahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, num_layers, dpt)
+        self.decoder = BasicAttentionDecoder(trg_vocab_size, embed_size, 2 * hidden_size, num_layers, dpt)        
+        #self.decoder = BasicBahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, num_layers, dpt)
 
     def encode(self, src):
         return self.encoder(src) 
@@ -46,6 +47,41 @@ class BasicDecoder(nn.Module):
         output = F.log_softmax(self.linear(output), dim=2)
         return output, hidden
 
+class BasicAttentionDecoder(nn.Module):
+    def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.2):
+        super(BasicAttentionDecoder, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_size)
+        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, dropout=dpt)
+        self.linear1 = nn.Linear(2 * hidden_size, embed_size)
+        self.linear2 = nn.Linear(embed_size, vocab_size)
+        self.dropout = nn.Dropout(p=dpt)
+        
+        # weight tying
+        self.linear2.weight = self.embedding.weight
+    
+    
+    def forward(self, trg, encoded_src, hidden=None):
+        trg_len = trg.size(0)
+        batch_size = trg.size(1)
+
+        x = self.embedding(trg)
+        output, hidden = self.lstm(x, hidden)
+        
+        h_e = encoded_src.transpose(0, 1)
+        h_d = output.transpose(0, 1)
+        
+        attn = torch.bmm(h_d, h_e.transpose(1, 2))
+        attn = F.softmax(attn, dim=2)
+        
+        context = torch.bmm(attn, h_e).transpose(0, 1) # t_o x b x d
+        
+        output = torch.cat((context, output), dim=2)
+        
+        output = torch.tanh(self.linear1(output))
+        output = self.dropout(output) 
+        output = F.log_softmax(self.linear2(output), dim=2)
+        
+        return output, hidden
     
 class BasicBahdanauAttnDecoder(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.2):
