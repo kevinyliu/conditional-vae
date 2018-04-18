@@ -6,7 +6,9 @@ from torchtext import data
 from torchtext import datasets
 from torchtext.vocab import GloVe
 
+import itertools, os, re
 from nltk.translate import bleu_score
+import tempfile, subprocess
 import spacy
 import numpy as np
 
@@ -180,7 +182,7 @@ def rouge(reference, predict, rouge_type='rouge-1'):
     return scores[0][rouge_type]['f']
 
 
-def generate(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
+def generate(model, val_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     """
     Generates top k best sentences given trained model.
     """
@@ -192,7 +194,7 @@ def generate(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     
     output = []
     
-    for batch in tqdm(eval_iter):
+    for batch in tqdm(val_iter):
         trg = batch.trg
         src = batch.src
         for i in range(src.size(1)):
@@ -221,18 +223,18 @@ def strip(sentence):
     while '</s>' in sentence:
         sentence.remove('</s>')
         
-def test_generation(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
+def test_generation(model, val_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     """
     Calls generate to get the generated sentences from beam search.
     Then evaluates them with blue and rouge.
     """
-    sentences = generate(model, eval_iter, TRG_TEXT, k, max_len, gpu)
+    sentences = generate(model, val_iter, TRG_TEXT, k, max_len, gpu)
     for s in sentences:
         strip(s)
     b = 0
     r = 0
     index = 0
-    for batch in eval_iter:
+    for batch in val_iter:
         trg = batch.trg
         for i in range(trg.size(1)):
             t = []
@@ -247,25 +249,25 @@ def test_generation(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     
     return b, r
 
-def test_multibleu(model, eval_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
+def test_multibleu(model, val_iter, TRG_TEXT, k=10, max_len=30, gpu=True):
 
-    sentences = generate(model, eval_iter, TRG_TEXT, k, max_len, gpu)
+    sentences = generate(model, val_iter, TRG_TEXT, k, max_len, gpu)
 
     sentences_out = []
     for s in sentences:
         strip(s)
-        sent = ' '.join(TRG.vocab.itos[j] for j in s)
+        sent = ' '.join(j for j in s)
         sentences_out.append(sent)
 
     sentences_ref = []
-    for batch in eval_iter:
+    for batch in val_iter:
         trg = batch.trg
         for i in range(trg.size(1)):
             t = []
             for word in trg[:, i]:
                 t += [TRG_TEXT.vocab.itos[word]]
             strip(t)
-            sent_ref = ' '.join(TRG.vocab.itos[j] for j in t)
+            sent_ref = ' '.join(j for j in t)
             sentences_ref.append(sent_ref)
 
     return moses_multi_bleu(sentences_out, sentences_ref)
