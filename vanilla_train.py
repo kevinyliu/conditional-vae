@@ -8,10 +8,14 @@ import numpy as np
 
 
 def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, checkpoint=False):
+    # optimizer and scheduler:
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=30, factor=0.25, verbose=True, cooldown=6)
+
     pad = TRG_TEXT.vocab.stoi['<pad>']
+
     loss = nn.NLLLoss(size_average=True, ignore_index=pad)
+
     cur_best = 0
     
     for epoch in range(num_epochs):
@@ -38,14 +42,14 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
 
         # greedy search
         bleu_val = utils.test_multibleu(model, val_iter, TRG_TEXT, k=1, gpu=gpu)
-        scheduler.step(bleu_val)  
-        
+        scheduler.step(bleu_val)
+
         results = 'Epoch: {}\n' \
                   '\tVALID PPL: {:.4f} NLL: {:.4f}\n'\
                   '\tTRAIN PPL: {:.4f} NLL: {:.4f}\n'\
                   '\tBLEU Greedy: {:.4f}'\
                   .format(epoch+1, val_perp, val_nll, train_perp, train_nll, bleu_val)
-        
+
         if not (epoch + 1) % 2:
             bleu = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
             results += '\n\tBLEU: {:.4f}'.format(bleu)
@@ -67,6 +71,6 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             with open(eval_file, "a") as f:
                 f.write("{}\n".format(results))
 
-            if checkpoint and bleu_val > cur_best:
+            if (bleu_val > cur_best) and checkpoint:
                 model_file = model_path + "/" + str(epoch + 1) + ".pt"
                 torch.save(model, model_file)

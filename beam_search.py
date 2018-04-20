@@ -10,6 +10,7 @@ def beam_search(model, src, bos, eos, k=10, max_len=100, filter_token=None, gpu=
     """
     works if batch size = 1
     """
+    model.eval()
     if gpu: 
         src = src.cuda()
 

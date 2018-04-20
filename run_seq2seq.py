@@ -2,20 +2,24 @@ import utils
 import vanilla_train
 import vanilla_seq2seq
 
-train_iter, val_iter, test, DE, EN = utils.torchtext_extract()
-
 model_name = "seq2seq_300_300_2_moses"
 
 gpu = True
+device = 0
 
 num_layers = 2
 embed_size = 300
 hidden_size = 300
-lr = 0.001
+lr = 0.002
+dp = 0.3
 
 num_epochs = 50
+batch_size = 64
 
-model = vanilla_seq2seq.Seq2Seq(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, num_layers)
+train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, BATCH_SIZE=batch_size)
+
+
+model = vanilla_seq2seq.Seq2Seq(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, num_layers, dp)
 if gpu:
     model.cuda()
 

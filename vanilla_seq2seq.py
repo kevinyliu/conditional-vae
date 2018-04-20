@@ -6,7 +6,7 @@ from encoder import Encoder
 
 # vanilla seq2seq model
 class Seq2Seq(nn.Module):
-    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, num_layers, dpt=0.2):
+    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, num_layers, dpt=0.3):
         super(Seq2Seq, self).__init__()
         self.encoder = Encoder(src_vocab_size, embed_size, hidden_size, num_layers, dpt)
         #self.decoder = BasicDecoder(trg_vocab_size, embed_size, hidden_size, num_layers, dpt)
@@ -26,7 +26,7 @@ class Seq2Seq(nn.Module):
 
 # vanilla seq2seq decoder
 class BasicDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.2):
+    def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.3):
         super(BasicDecoder, self).__init__()
 
         self.embedding = nn.Embedding(vocab_size, embed_size)
@@ -48,7 +48,7 @@ class BasicDecoder(nn.Module):
         return output, hidden
 
 class BasicAttentionDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.2):
+    def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.3):
         super(BasicAttentionDecoder, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_size)
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, dropout=dpt)
@@ -65,8 +65,8 @@ class BasicAttentionDecoder(nn.Module):
         batch_size = trg.size(1)
 
         x = self.embedding(trg)
+        x = self.dropout(x)
         output, hidden = self.lstm(x, hidden)
-        
         h_e = encoded_src.transpose(0, 1)
         h_d = output.transpose(0, 1)
         
@@ -84,7 +84,7 @@ class BasicAttentionDecoder(nn.Module):
         return output, hidden
     
 class BasicBahdanauAttnDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.2):
+    def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.3):
         super(BasicBahdanauAttnDecoder, self).__init__()
         self.num_layers = num_layers
 
@@ -99,6 +99,7 @@ class BasicBahdanauAttnDecoder(nn.Module):
         # final linear layer before applying (Log) Softmax
         self.penult = nn.Linear(hidden_size + 2 * hidden_size, embed_size)
         self.out = nn.Linear(embed_size, vocab_size)
+        # weight tying
         self.out.weight = self.embedding.weight
 
     def step_forward(self, word_input, last_hidden, last_context, annot_scores, annotations):
@@ -132,7 +133,7 @@ class BasicBahdanauAttnDecoder(nn.Module):
         context = torch.zeros(encoded_src.size()[1:]).type_as(annotations)
         all_scores = None
         for trg in trg_embeddings:
-            output, hidden, context = self.step_forward(trg, hidden, context, annot_scores, annotations)
+                output, hidden, context = self.step_forward(trg, hidden, context, annot_scores, annotations)
             # append output (h_t) and context to the overall matrix
             stacked = torch.cat((output, context.unsqueeze(0)), dim=2)
             all_scores = stacked if all_scores is None else torch.cat((all_scores, stacked))
