@@ -133,7 +133,7 @@ class BasicBahdanauAttnDecoder(nn.Module):
         context = torch.zeros(encoded_src.size()[1:]).type_as(annotations)
         all_scores = None
         for trg in trg_embeddings:
-                output, hidden, context = self.step_forward(trg, hidden, context, annot_scores, annotations)
+            output, hidden, context = self.step_forward(trg, hidden, context, annot_scores, annotations)
             # append output (h_t) and context to the overall matrix
             stacked = torch.cat((output, context.unsqueeze(0)), dim=2)
             all_scores = stacked if all_scores is None else torch.cat((all_scores, stacked))
