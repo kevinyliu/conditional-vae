@@ -81,3 +81,4 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             if checkpoint and bleu_val > cur_best:
                 model_file = model_path + "/" + str(epoch + 1) + ".pt"
                 torch.save(model, model_file)
+                cur_best = bleu_val

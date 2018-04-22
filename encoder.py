@@ -9,6 +9,10 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.hidden_size = hidden_size
         self.embedding = nn.Embedding(vocab_size, embed_size)
+        
+        # test
+        self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
+        
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, dropout=dpt, bidirectional=True)
         self.dropout = nn.Dropout(p=dpt)
 

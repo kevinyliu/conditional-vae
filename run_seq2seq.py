@@ -2,7 +2,7 @@ import utils
 import vanilla_train
 import vanilla_seq2seq
 
-model_name = "seq2seq_300_300_2_moses"
+model_name = "seq2seq_dotattn_initembed"
 
 gpu = True
 device = 0
@@ -10,16 +10,16 @@ device = 0
 num_layers = 2
 embed_size = 300
 hidden_size = 300
+
 lr = 0.002
-dp = 0.3
+dpt = 0.3
 
 num_epochs = 50
 batch_size = 64
 
 train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, BATCH_SIZE=batch_size)
 
-
-model = vanilla_seq2seq.Seq2Seq(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, num_layers, dp)
+model = vanilla_seq2seq.Seq2Seq(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, num_layers, dpt)
 if gpu:
     model.cuda()
 

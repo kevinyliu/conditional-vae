@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Prior(nn.Module):
-    def __init__(self, hidden_size, latent_size):
+    def __init__(self, hidden_size, latent_size, dpt=0.3):
         super(Prior, self).__init__()
 
         self.latent_size = latent_size
@@ -12,12 +12,16 @@ class Prior(nn.Module):
         self.linear = nn.Linear(2*hidden_size, latent_size)
         self.linear_mu = nn.Linear(latent_size, latent_size)
         self.linear_var = nn.Linear(latent_size, latent_size)
+        
+        self.dropout = nn.Dropout(p=dpt)
 
 
     def forward(self, src, encoded_src):
         encoded_src = encoded_src.transpose(0,1).transpose(1,2)
         h_src = F.avg_pool1d(encoded_src, encoded_src.size(2)).view(encoded_src.size(0), -1)
+        h_src = self.dropout(h_src)
         h_z = F.tanh(self.linear(h_src))
+        h_z = self.dropout(h_z)
         mu = self.linear_mu(h_z)
         log_var = self.linear_var(h_z)
 
@@ -25,7 +29,7 @@ class Prior(nn.Module):
 
 
 class ApproximatePosterior(nn.Module):
-    def __init__(self, hidden_size, latent_size):
+    def __init__(self, hidden_size, latent_size, dpt=0.3):
         super(ApproximatePosterior, self).__init__()
 
         self.latent_size = latent_size
@@ -34,6 +38,8 @@ class ApproximatePosterior(nn.Module):
         self.linear = nn.Linear(4*hidden_size, latent_size)
         self.linear_mu = nn.Linear(latent_size, latent_size)
         self.linear_var = nn.Linear(latent_size, latent_size)
+        
+        self.dropout = nn.Dropout(p=dpt)
 
     def forward(self, src, encoded_src, trg, encoded_trg):
         encoded_src = encoded_src.transpose(0,1).transpose(1,2)
@@ -41,14 +47,19 @@ class ApproximatePosterior(nn.Module):
 
         h_src = F.avg_pool1d(encoded_src, encoded_src.size(2)).view(encoded_src.size(0), -1)
         h_trg = F.avg_pool1d(encoded_trg, encoded_trg.size(2)).view(encoded_trg.size(0), -1)
+        
+        h_src = self.dropout(h_src)
+        h_trg = self.dropout(h_trg)
+        
         h_z = F.tanh(self.linear(torch.cat((h_src, h_trg), dim=1)))
+        h_z = self.dropout(h_z)
         mu = self.linear_mu(h_z)
         log_var = self.linear_var(h_z)
 
         return mu, log_var
 
 class AttentionApproximatePosterior(nn.Module):
-    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size):
+    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, dpt=0.3):
         super(AttentionApproximatePosterior, self).__init__()
 
         self.latent_size = latent_size
@@ -63,6 +74,8 @@ class AttentionApproximatePosterior(nn.Module):
         self.linear = nn.Linear(2*hidden_size, latent_size)
         self.linear_mu = nn.Linear(latent_size, latent_size)
         self.linear_var = nn.Linear(latent_size, latent_size)
+        
+        self.dropout = nn.Dropout(p=dpt)
 
     def forward(self, src, encoded_src, trg, encoded_trg):
         
@@ -79,10 +92,14 @@ class AttentionApproximatePosterior(nn.Module):
         attn_trg = F.softmax(attn_trg, dim=2)
         c_trg = torch.bmm(attn_trg, x_trg) # b x t_i x e
         
+        c_src = self.dropout(c_src)
+        c_trg = self.dropout(c_trg)
+        
         v_src = F.tanh(self.linear_src(torch.cat((c_trg, x_src), dim=2)).sum(dim=1)) # b x h
         v_trg = F.tanh(self.linear_trg(torch.cat((c_src, x_trg), dim=2)).sum(dim=1)) # b x h
         
         h_z = F.tanh(self.linear(torch.cat((v_src, v_trg), dim=1)))
+        h_z = self.dropout(h_z)
         mu = self.linear_mu(h_z)
         log_var = self.linear_var(h_z)
 

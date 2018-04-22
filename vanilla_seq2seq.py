@@ -51,6 +51,10 @@ class BasicAttentionDecoder(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, num_layers, dpt=0.3):
         super(BasicAttentionDecoder, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_size)
+        
+        # test
+        self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
+        
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, dropout=dpt)
         self.linear1 = nn.Linear(2 * hidden_size, embed_size)
         self.linear2 = nn.Linear(embed_size, vocab_size)

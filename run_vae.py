@@ -2,33 +2,30 @@ import utils
 import train
 import cvae
 
-train_iter, val_iter, test, DE, EN = utils.torchtext_extract()
-
-model_name = "vae_attn_posterior_basic_decoder"
+model_name = "vae_dotattn"
 
 gpu = True
-checkpoint = True
+device = 0
 
-num_layers = 4
+num_layers = 2
 embed_size = 300
 hidden_size = 300
 latent_size = 300
 
-num_epochs=30
+lr = 0.002
+dpt = 0.3
+
+num_epochs = 50
+batch_size = 64
+
+train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, BATCH_SIZE=batch_size)
 
 anneal = utils.kl_anneal_linear
 
-eos = EN.vocab.stoi["</s>"]
-bos = EN.vocab.stoi["<s>"]
-pad = EN.vocab.stoi["<pad>"]
-
-filter_beam = [pad, bos]
-
-
-model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_size, num_layers)
+model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_size, num_layers, dpt)
 if gpu:
     model.cuda()
 
 print("Number of parameters: {}".format(utils.count_parameters(model)))
 
-train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, checkpoint=checkpoint)
+train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, lr, checkpoint=True)
