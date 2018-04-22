@@ -59,14 +59,23 @@ class ApproximatePosterior(nn.Module):
         return mu, log_var
 
 class AttentionApproximatePosterior(nn.Module):
-    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, dpt=0.3):
+    def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, dpt=0.3, src_embedding=None, trg_embedding=None):
         super(AttentionApproximatePosterior, self).__init__()
 
         self.latent_size = latent_size
         self.hidden_size = hidden_size
         
-        self.src_embedding = nn.Embedding(src_vocab_size, embed_size)
-        self.trg_embedding = nn.Embedding(trg_vocab_size, embed_size)
+        if src_embedding is not None:
+            self.src_embedding = src_embedding
+        else:
+            self.src_embedding = nn.Embedding(src_vocab_size, embed_size)
+            self.src_embedding.weight.data.copy_((torch.rand(src_vocab_size, embed_size) - 0.5) * 2)        
+        
+        if trg_embedding is not None:
+            self.trg_embedding = trg_embedding
+        else:
+            self.trg_embedding = nn.Embedding(trg_vocab_size, embed_size)
+            self.trg_embedding.weight.data.copy_((torch.rand(trg_vocab_size, embed_size) - 0.5) * 2)   
         
         self.linear_src = nn.Linear(2*embed_size, hidden_size)
         self.linear_trg = nn.Linear(2*embed_size, hidden_size)

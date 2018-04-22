@@ -11,16 +11,23 @@ import inferer
 class CVAE(nn.Module):
     def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3):
         super(CVAE, self).__init__()
-        self.src_encoder = encoder.Encoder(src_vocab_size, embed_size, hidden_size, num_layers)
-        self.trg_encoder = encoder.Encoder(trg_vocab_size, embed_size, hidden_size, num_layers)
+        self.src_embedding = nn.Embedding(src_vocab_size, embed_size)
+        self.trg_embedding = nn.Embedding(trg_vocab_size, embed_size)
+
+        self.src_embedding.weight.data.copy_((torch.rand(src_vocab_size, embed_size) - 0.5) * 2)
+        self.trg_embedding.weight.data.copy_((torch.rand(trg_vocab_size, embed_size) - 0.5) * 2)
+
         
-        #self.decoder = decoder.BasicDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers)
-        self.decoder = decoder.BasicAttentionDecoder(trg_vocab_size, embed_size, 2 * hidden_size, latent_size, num_layers)
-        #self.decoder = decoder.BahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt)
+        self.src_encoder = encoder.Encoder(src_vocab_size, embed_size, hidden_size, num_layers, self.src_embedding)
+        self.trg_encoder = encoder.Encoder(trg_vocab_size, embed_size, hidden_size, num_layers, self.trg_embedding)
+        
+        #self.decoder = decoder.BasicDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, self.trg_embedding)
+        self.decoder = decoder.BasicAttentionDecoder(trg_vocab_size, embed_size, 2 * hidden_size, latent_size, num_layers, self.trg_embedding)
+        #self.decoder = decoder.BahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt, self.trg_embedding)
         
         self.p = inferer.Prior(hidden_size, latent_size, dpt)
-        #self.q = inferer.ApproximatePosterior(hidden_size, latent_size, dpt)
-        self.q = inferer.AttentionApproximatePosterior(src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, dpt)
+        self.q = inferer.ApproximatePosterior(hidden_size, latent_size, dpt)
+#         self.q = inferer.AttentionApproximatePosterior(src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, dpt, self.src_embedding, self.trg_embedding)
 
     def encode(self, src):
         return self.src_encoder(src) 

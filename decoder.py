@@ -4,11 +4,15 @@ import torch.nn.functional as F
 
 # seq2seq decoder
 class BasicDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2, embedding=None):
         super(BasicDecoder, self).__init__()
         self.hidden_size = hidden_size
 
-        self.embedding = nn.Embedding(vocab_size, embed_size)
+        if embedding is not None:
+            self.embedding = embedding
+        else:
+            self.embedding = nn.Embedding(vocab_size, embed_size)
+        
         self.lstm = nn.LSTM(embed_size + latent_size, hidden_size, num_layers, dropout=dpt)
 #         self.linear = nn.Linear(hidden_size, vocab_size)
         self.linear = nn.Linear(3*hidden_size, vocab_size)
@@ -35,12 +39,15 @@ class BasicDecoder(nn.Module):
         return output, hidden
 
 class BasicAttentionDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, emebedding=None):
         super(BasicAttentionDecoder, self).__init__()
-        self.embedding = nn.Embedding(vocab_size, embed_size)
         
-        # test
-        self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
+        if embedding is not None:
+            self.embedding = embedding
+        else:
+            self.embedding = nn.Embedding(vocab_size, embed_size)
+            self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
+        
         
         self.lstm = nn.LSTM(embed_size + latent_size, hidden_size, num_layers, dropout=dpt)
         self.linear1 = nn.Linear(2 * hidden_size, embed_size)
@@ -78,11 +85,16 @@ class BasicAttentionDecoder(nn.Module):
     
     
 class BahdanauAttnDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2, embedding=None):
         super(BahdanauAttnDecoder, self).__init__()
         self.num_layers = num_layers
 
-        self.embedding = nn.Embedding(vocab_size, embed_size)
+        if embedding is not None:
+            self.embedding = embedding
+        else:
+            self.embedding = nn.Embedding(vocab_size, embed_size)
+            self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
+        
         self.lstm = nn.LSTM(embed_size + 2 * hidden_size + latent_size, hidden_size, num_layers, dropout=dpt)
         # dropout for LSTM
         self.dropout = nn.Dropout(p=dpt)
