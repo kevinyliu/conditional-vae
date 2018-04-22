@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 # seq2seq decoder
 class BasicDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2, embedding=None):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, embedding=None):
         super(BasicDecoder, self).__init__()
         self.hidden_size = hidden_size
 
@@ -39,7 +39,7 @@ class BasicDecoder(nn.Module):
         return output, hidden
 
 class BasicAttentionDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, emebedding=None):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, embedding=None):
         super(BasicAttentionDecoder, self).__init__()
         
         if embedding is not None:
@@ -85,7 +85,7 @@ class BasicAttentionDecoder(nn.Module):
     
     
 class BahdanauAttnDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.2, embedding=None):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, embedding=None):
         super(BahdanauAttnDecoder, self).__init__()
         self.num_layers = num_layers
 
