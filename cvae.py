@@ -11,9 +11,9 @@ import inferer
 class CVAE(nn.Module):
     def __init__(self, src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3):
         super(CVAE, self).__init__()
+        
         self.src_embedding = nn.Embedding(src_vocab_size, embed_size)
         self.trg_embedding = nn.Embedding(trg_vocab_size, embed_size)
-
         self.src_embedding.weight.data.copy_((torch.rand(src_vocab_size, embed_size) - 0.5) * 2)
         self.trg_embedding.weight.data.copy_((torch.rand(trg_vocab_size, embed_size) - 0.5) * 2)
 
@@ -26,9 +26,11 @@ class CVAE(nn.Module):
         #self.decoder = decoder.BahdanauAttnDecoder(trg_vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt, self.trg_embedding)
         
         self.p = inferer.Prior(hidden_size, latent_size, dpt)
-#         self.q = inferer.ApproximatePosterior(hidden_size, latent_size, dpt)
-        self.q = inferer.AttentionApproximatePosterior(src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, dpt, self.src_embedding, self.trg_embedding)
-
+        #self.q = inferer.ApproximatePosterior(hidden_size, latent_size, dpt)
+        #self.q = inferer.AttentionApproximatePosterior(src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, dpt, self.src_embedding, self.trg_embedding)
+        #self.q = inferer.AttentionApproximatePosterior(src_vocab_size, trg_vocab_size, embed_size, hidden_size, latent_size, dpt)
+        self.q = inferer.LSTMAttentionApproximatePosterior(hidden_size, latent_size, dpt)
+        
     def encode(self, src):
         return self.src_encoder(src) 
 
