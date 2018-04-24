@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_lstmdotattn_wt"
+model_name = "vae_lstmdotattn_wt_proj"
 
 gpu = True
 device = 0

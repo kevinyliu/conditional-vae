@@ -49,7 +49,9 @@ class BasicAttentionDecoder(nn.Module):
             self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
         
         
-        self.lstm = nn.LSTM(embed_size + latent_size, hidden_size, num_layers, dropout=dpt)
+        self.linear_z = nn.Linear(latent_size, hidden_size)
+        
+        self.lstm = nn.LSTM(embed_size + hidden_size, hidden_size, num_layers, dropout=dpt)
         self.linear1 = nn.Linear(2 * hidden_size, embed_size)
         self.linear2 = nn.Linear(embed_size, vocab_size)
         self.dropout = nn.Dropout(p=dpt)
@@ -64,7 +66,9 @@ class BasicAttentionDecoder(nn.Module):
         x = self.embedding(trg)
         x = self.dropout(x)
         
-        x = torch.cat((x, z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
+        h_z = F.tanh(self.linear_z(z))
+        
+        x = torch.cat((x, h_z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
         
         output, hidden = self.lstm(x, hidden)
         h_e = encoded_src.transpose(0, 1)

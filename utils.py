@@ -15,7 +15,7 @@ import numpy as np
 import beam_search
 
 
-def torchtext_extract(d=-1, MAX_LEN=20, MIN_FREQ=5, BATCH_SIZE=32):
+def torchtext_extract(DATASET="IWSLT", d=-1, MAX_LEN=20, MIN_FREQ=5, BATCH_SIZE=32):
     spacy_de = spacy.load('de')
     spacy_en = spacy.load('en')
 
@@ -30,9 +30,14 @@ def torchtext_extract(d=-1, MAX_LEN=20, MIN_FREQ=5, BATCH_SIZE=32):
     DE = data.Field(tokenize=tokenize_de)
     EN = data.Field(tokenize=tokenize_en, init_token=BOS_WORD, eos_token=EOS_WORD)  # only target needs BOS/EOS
 
-    train, val, test = datasets.IWSLT.splits(exts=('.de', '.en'), fields=(DE, EN), 
-                                         filter_pred=lambda x: len(vars(x)['src']) <= MAX_LEN and 
-                                         len(vars(x)['trg']) <= MAX_LEN)
+    if DATASET == "IWSLT":
+        train, val, test = datasets.IWSLT.splits(exts=('.de', '.en'), fields=(DE, EN), 
+                                             filter_pred=lambda x: len(vars(x)['src']) <= MAX_LEN and 
+                                             len(vars(x)['trg']) <= MAX_LEN)
+    elif DATASET == "WMT14":
+        train, val, test = datasets.WMT14.splits(exts=('.de', '.en'), fields=(DE, EN), 
+                                             filter_pred=lambda x: len(vars(x)['src']) <= MAX_LEN and 
+                                             len(vars(x)['trg']) <= MAX_LEN)
 
     DE.build_vocab(train.src, min_freq=MIN_FREQ)
     EN.build_vocab(train.trg, min_freq=MIN_FREQ)
