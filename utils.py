@@ -15,7 +15,7 @@ import numpy as np
 import beam_search
 
 
-def torchtext_extract(DATASET="IWSLT", d=-1, MAX_LEN=20, MIN_FREQ=5, BATCH_SIZE=32):
+def torchtext_extract(DATASET="IWSLT", d=-1, MAX_LEN=100, MIN_FREQ=5, BATCH_SIZE=32):
     spacy_de = spacy.load('de')
     spacy_en = spacy.load('en')
 

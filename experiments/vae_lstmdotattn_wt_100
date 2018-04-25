@@ -1,0 +1,177 @@
+MAX_LEN 100 IWSLT
+CVAE LSTM Dot Attention Inferer
+No Projection in Decoder
+
+CVAE(
+  (src_embedding): Embedding(26924, 300)
+  (trg_embedding): Embedding(20489, 300)
+  (src_encoder): Encoder(
+    (embedding): Embedding(26924, 300)
+    (lstm): LSTM(300, 300, num_layers=2, dropout=0.3, bidirectional=True)
+    (dropout): Dropout(p=0.3)
+  )
+  (trg_encoder): Encoder(
+    (embedding): Embedding(20489, 300)
+    (lstm): LSTM(300, 300, num_layers=2, dropout=0.3, bidirectional=True)
+    (dropout): Dropout(p=0.3)
+  )
+  (decoder): BasicAttentionDecoder(
+    (embedding): Embedding(20489, 300)
+    (lstm): LSTM(600, 600, num_layers=2, dropout=0.3)
+    (linear1): Linear(in_features=1200, out_features=300, bias=True)
+    (linear2): Linear(in_features=300, out_features=20489, bias=True)
+    (dropout): Dropout(p=0.3)
+  )
+  (p): Prior(
+    (linear): Linear(in_features=600, out_features=300, bias=True)
+    (linear_mu): Linear(in_features=300, out_features=300, bias=True)
+    (linear_var): Linear(in_features=300, out_features=300, bias=True)
+    (dropout): Dropout(p=0.3)
+  )
+  (q): LSTMAttentionApproximatePosterior(
+    (linear_src): Linear(in_features=1200, out_features=300, bias=True)
+    (linear_trg): Linear(in_features=1200, out_features=300, bias=True)
+    (linear): Linear(in_features=600, out_features=300, bias=True)
+    (linear_mu): Linear(in_features=300, out_features=300, bias=True)
+    (linear_var): Linear(in_features=300, out_features=300, bias=True)
+    (dropout): Dropout(p=0.3)
+  )
+)Epoch: 1
+	VALID PB: inf NELBO: 1491.4791 RE: 2.8817 KL: 1488.5973
+	TRAIN PB: inf NELBO: 1129.5849 RE: 4.0029 KL: 1125.5819
+	BLEU Greedy: 17.1600
+Epoch: 2
+	VALID PB: 16.2906 NELBO: 2.7906 RE: 2.5312 KL: 0.2594
+	TRAIN PB: 13818.5253 NELBO: 9.5338 RE: 3.0914 KL: 6.4424
+	BLEU Greedy: 20.4700
+	BLEU: 21.1000
+Epoch: 3
+	VALID PB: 13.1867 NELBO: 2.5792 RE: 2.3634 KL: 0.2158
+	TRAIN PB: 21.2047 NELBO: 3.0542 RE: 2.7663 KL: 0.2880
+	BLEU Greedy: 22.2500
+Epoch: 4
+	VALID PB: 14.9787 NELBO: 2.7066 RE: 2.2713 KL: 0.4353
+	TRAIN PB: 17.4857 NELBO: 2.8614 RE: 2.5869 KL: 0.2745
+	BLEU Greedy: 23.5700
+	BLEU: 24.8200
+Epoch: 5
+	VALID PB: 10.3703 NELBO: 2.3389 RE: 2.1986 KL: 0.1403
+	TRAIN PB: 15.4816 NELBO: 2.7397 RE: 2.4677 KL: 0.2719
+	BLEU Greedy: 22.9100
+Epoch: 6
+	VALID PB: 11.5616 NELBO: 2.4477 RE: 2.1658 KL: 0.2819
+	TRAIN PB: 13.7470 NELBO: 2.6208 RE: 2.3754 KL: 0.2455
+	BLEU Greedy: 24.4300
+	BLEU: 25.4000
+Epoch: 7
+	VALID PB: 10.5699 NELBO: 2.3580 RE: 2.1340 KL: 0.2241
+	TRAIN PB: 12.6058 NELBO: 2.5342 RE: 2.3034 KL: 0.2307
+	BLEU Greedy: 25.3800
+Epoch: 8
+	VALID PB: 9.3742 NELBO: 2.2380 RE: 2.1003 KL: 0.1377
+	TRAIN PB: 11.6901 NELBO: 2.4587 RE: 2.2406 KL: 0.2181
+	BLEU Greedy: 25.1100
+	BLEU: 26.7300
+Epoch: 9
+	VALID PB: 10.2641 NELBO: 2.3286 RE: 2.0937 KL: 0.2349
+	TRAIN PB: 11.0148 NELBO: 2.3992 RE: 2.1890 KL: 0.2102
+	BLEU Greedy: 25.3600
+Epoch: 10
+	VALID PB: 10.6427 NELBO: 2.3649 RE: 2.0912 KL: 0.2736
+	TRAIN PB: 10.4708 NELBO: 2.3486 RE: 2.1435 KL: 0.2051
+	BLEU Greedy: 25.8400
+	BLEU: 27.1100
+Epoch: 11
+	VALID PB: 9.6578 NELBO: 2.2678 RE: 2.0626 KL: 0.2052
+	TRAIN PB: 9.9919 NELBO: 2.3018 RE: 2.1046 KL: 0.1972
+	BLEU Greedy: 25.1300
+Epoch: 12
+	VALID PB: 9.2102 NELBO: 2.2203 RE: 2.0708 KL: 0.1495
+	TRAIN PB: 9.5261 NELBO: 2.2540 RE: 2.0700 KL: 0.1840
+	BLEU Greedy: 25.5900
+	BLEU: 26.5300
+Epoch: 13
+	VALID PB: 8.6716 NELBO: 2.1601 RE: 2.0524 KL: 0.1077
+	TRAIN PB: 9.2642 NELBO: 2.2262 RE: 2.0368 KL: 0.1893
+	BLEU Greedy: 26.0700
+Epoch: 14
+	VALID PB: 10.9472 NELBO: 2.3931 RE: 2.0725 KL: 0.3206
+	TRAIN PB: 8.9176 NELBO: 2.1880 RE: 2.0119 KL: 0.1761
+	BLEU Greedy: 25.6900
+	BLEU: 26.9400
+Epoch: 15
+	VALID PB: 8.7177 NELBO: 2.1654 RE: 2.0533 KL: 0.1121
+	TRAIN PB: 8.6498 NELBO: 2.1575 RE: 1.9878 KL: 0.1697
+	BLEU Greedy: 25.3800
+Epoch: 16
+	VALID PB: 9.3609 NELBO: 2.2365 RE: 2.0703 KL: 0.1663
+	TRAIN PB: 8.4022 NELBO: 2.1285 RE: 1.9634 KL: 0.1651
+	BLEU Greedy: 25.5200
+	BLEU: 26.9400
+Epoch: 17
+	VALID PB: 14.0553 NELBO: 2.6430 RE: 2.0309 KL: 0.6121
+	TRAIN PB: 8.3199 NELBO: 2.1187 RE: 1.9446 KL: 0.1740
+	BLEU Greedy: 26.3800
+Epoch: 18
+	VALID PB: 10.5914 NELBO: 2.3600 RE: 2.0245 KL: 0.3355
+	TRAIN PB: 8.1424 NELBO: 2.0971 RE: 1.9287 KL: 0.1683
+	BLEU Greedy: 26.0400
+	BLEU: 26.8500
+Epoch: 19
+	VALID PB: 8.3386 NELBO: 2.1209 RE: 2.0311 KL: 0.0898
+	TRAIN PB: 7.9545 NELBO: 2.0737 RE: 1.9123 KL: 0.1615
+	BLEU Greedy: 26.3700
+Epoch: 20
+	VALID PB: 8.3299 NELBO: 2.1199 RE: 2.0341 KL: 0.0857
+	TRAIN PB: 7.7652 NELBO: 2.0497 RE: 1.8948 KL: 0.1548
+	BLEU Greedy: 25.9900
+	BLEU: 27.3800
+Epoch: 21
+	VALID PB: 10.5805 NELBO: 2.3590 RE: 2.0459 KL: 0.3131
+	TRAIN PB: 7.6363 NELBO: 2.0329 RE: 1.8780 KL: 0.1549
+	BLEU Greedy: 26.1800
+Epoch: 22
+	VALID PB: 9.3562 NELBO: 2.2360 RE: 2.0388 KL: 0.1972
+	TRAIN PB: 7.5356 NELBO: 2.0196 RE: 1.8646 KL: 0.1550
+	BLEU Greedy: 25.9500
+	BLEU: 27.3800
+Epoch: 23
+	VALID PB: 8.1448 NELBO: 2.0974 RE: 2.0625 KL: 0.0348
+	TRAIN PB: 7.4816 NELBO: 2.0124 RE: 1.8505 KL: 0.1619
+	BLEU Greedy: 25.9600
+Epoch: 24
+	VALID PB: 8.5344 NELBO: 2.1441 RE: 2.0258 KL: 0.1183
+	TRAIN PB: 7.2989 NELBO: 1.9877 RE: 1.8412 KL: 0.1465
+	BLEU Greedy: 26.1000
+	BLEU: 27.5300
+Epoch: 25
+	VALID PB: 8.6299 NELBO: 2.1552 RE: 2.0343 KL: 0.1209
+	TRAIN PB: 7.2397 NELBO: 1.9796 RE: 1.8249 KL: 0.1547
+	BLEU Greedy: 25.9500
+Epoch: 26
+	VALID PB: 8.2422 NELBO: 2.1093 RE: 2.0507 KL: 0.0586
+	TRAIN PB: 7.1305 NELBO: 1.9644 RE: 1.8158 KL: 0.1485
+	BLEU Greedy: 26.4100
+	BLEU: 27.5900
+Epoch: 27
+	VALID PB: 8.2452 NELBO: 2.1096 RE: 2.0474 KL: 0.0622
+	TRAIN PB: 7.0443 NELBO: 1.9522 RE: 1.8053 KL: 0.1470
+	BLEU Greedy: 25.8400
+Epoch: 28
+	VALID PB: 8.6512 NELBO: 2.1577 RE: 2.0400 KL: 0.1177
+	TRAIN PB: 6.9449 NELBO: 1.9380 RE: 1.7955 KL: 0.1425
+	BLEU Greedy: 25.8300
+	BLEU: 27.4800
+Epoch: 29
+	VALID PB: 8.5176 NELBO: 2.1421 RE: 2.0405 KL: 0.1016
+	TRAIN PB: 6.8750 NELBO: 1.9279 RE: 1.7835 KL: 0.1444
+	BLEU Greedy: 25.7100
+Epoch: 30
+	VALID PB: 8.4159 NELBO: 2.1301 RE: 2.0583 KL: 0.0718
+	TRAIN PB: 6.8297 NELBO: 1.9213 RE: 1.7783 KL: 0.1430
+	BLEU Greedy: 25.5500
+	BLEU: 27.0900
+Epoch: 31
+	VALID PB: 9.1223 NELBO: 2.2107 RE: 2.0597 KL: 0.1510
+	TRAIN PB: 6.7596 NELBO: 1.9110 RE: 1.7691 KL: 0.1418
+	BLEU Greedy: 25.5500
