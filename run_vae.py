@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_lstmprojattn_wt_100_nokl"
+model_name = "vae_dummydecoder"
 
 gpu = True
 device = 0

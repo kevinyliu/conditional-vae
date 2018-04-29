@@ -59,7 +59,7 @@ class BasicAttentionDecoder(nn.Module):
         
         # weight tying
         self.linear2.weight = self.embedding.weight
-    
+        
     def forward(self, trg, z, encoded_src, hidden=None):
         trg_len = trg.size(0)
         batch_size = trg.size(1)
@@ -83,6 +83,48 @@ class BasicAttentionDecoder(nn.Module):
         
         output = torch.cat((context, output), dim=2)
         
+        output = torch.tanh(self.linear1(output))
+        output = self.dropout(output) 
+        output = F.log_softmax(self.linear2(output), dim=2)
+        
+        return output, hidden
+
+# Dumb decoder: does not look at source at all
+class DummyDecoder(nn.Module):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, embedding=None):
+        super(DummyDecoder, self).__init__()
+        
+        if embedding is not None:
+            self.embedding = embedding
+        else:
+            self.embedding = nn.Embedding(vocab_size, embed_size)
+            self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
+        
+        
+        #self.linear_z = nn.Linear(latent_size, hidden_size)  
+        #self.lstm = nn.LSTM(embed_size + hidden_size, hidden_size, num_layers, dropout=dpt)
+        
+        self.lstm = nn.LSTM(embed_size + latent_size, hidden_size, num_layers, dropout=dpt)
+        self.linear1 = nn.Linear(hidden_size, embed_size)
+        self.linear2 = nn.Linear(embed_size, vocab_size)
+        self.dropout = nn.Dropout(p=dpt)
+        
+        # weight tying
+        self.linear2.weight = self.embedding.weight
+    
+    def forward(self, trg, z, encoded_src, hidden=None):
+        trg_len = trg.size(0)
+        batch_size = trg.size(1)
+
+        x = self.embedding(trg)
+        x = self.dropout(x)
+        
+        #h_z = F.tanh(self.linear_z(z))
+        #x = torch.cat((x, h_z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
+        
+        x = torch.cat((x, z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
+        
+        output, hidden = self.lstm(x, hidden) # t_o x b x 2h
         output = torch.tanh(self.linear1(output))
         output = self.dropout(output) 
         output = F.log_softmax(self.linear2(output), dim=2)
