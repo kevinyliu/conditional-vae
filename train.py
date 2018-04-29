@@ -47,15 +47,15 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         val_perp, val_elbo, val_nre, val_kl = utils.eval_vae(model, val_iter, pad, gpu)
 
         # greedy search
-        bleu_val = utils.test_multibleu(model, val_iter, TRG_TEXT, k=1, gpu=gpu)
-        scheduler.step(bleu_val)
+        bleu_greedy = utils.test_multibleu(model, val_iter, TRG_TEXT, k=1, gpu=gpu)
+        scheduler.step(bleu_greedy)
         
         results = 'Epoch: {}\n' \
                   '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n' \
                   '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n'\
                   '\tBLEU Greedy: {:.4f}'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
-                    np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_val)
+                    np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_greedy)
 
         if not (epoch + 1) % 2:
             bleu = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
@@ -78,7 +78,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             with open(eval_file, "a") as f:
                 f.write("{}\n".format(results))
 
-            if checkpoint and bleu_val > cur_best:
+            if (not (epoch + 1) % 2) and checkpoint and bleu > cur_best:
                 model_file = model_path + "/" + str(epoch + 1) + ".pt"
                 torch.save(model, model_file)
-                cur_best = bleu_val
+                cur_best = bleu

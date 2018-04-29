@@ -88,8 +88,7 @@ class BasicAttentionDecoder(nn.Module):
         output = F.log_softmax(self.linear2(output), dim=2)
         
         return output, hidden
-    
-    
+
 class BahdanauAttnDecoder(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, embedding=None):
         super(BahdanauAttnDecoder, self).__init__()

@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_lstmdotattn_wt_100"
+model_name = "vae_lstmprojattn_wt_100_nokl"
 
 gpu = True
 device = 0
