@@ -254,7 +254,7 @@ def test_generation(model, val_iter, TRG_TEXT, k=10, max_len=100, gpu=True):
     
     return b, r
 
-def test_multibleu(model, val_iter, TRG_TEXT, k=10, max_len=30, gpu=True):
+def test_multibleu(model, val_iter, TRG_TEXT, k=10, max_len=120, gpu=True):
 
     sentences = generate(model, val_iter, TRG_TEXT, k, max_len, gpu)
 

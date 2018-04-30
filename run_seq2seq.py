@@ -2,7 +2,7 @@ import utils
 import vanilla_train
 import vanilla_seq2seq
 
-model_name = "seq2seq_dotattn_initembed_100"
+model_name = "seq2seq"
 
 gpu = True
 device = 0
