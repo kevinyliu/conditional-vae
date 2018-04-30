@@ -58,8 +58,13 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
                     np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_greedy)
 
         if not (epoch + 1) % 2:
+            model.if_zero = False
             bleu = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
             results += '\n\tBLEU: {:.4f}'.format(bleu)
+            
+            model.if_zero = True
+            bleu_zero = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
+            results += '\n\tBLEU ZERO: {:.4f}'.format(bleu_zero)
 
         print(results)
 
