@@ -61,7 +61,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         results = 'Epoch: {}\n' \
                   '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n' \
                   '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n'\
-                  '\tBLEU Greedy: {:.4f}\n BLEU Zero Greedy'\
+                  '\tBLEU Greedy: {:.4f}\n\t BLEU Zero Greedy: {:.4f}'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
                     np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_greedy, bleu_zero)
 
