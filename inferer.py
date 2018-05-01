@@ -121,11 +121,11 @@ class LSTMAttentionApproximatePosterior(nn.Module):
         self.latent_size = latent_size
         self.hidden_size = hidden_size
         
-        self.linear_src1 = nn.Linear(2*hidden_size, 2*hidden_size)
-        self.linear_trg1 = nn.Linear(2*hidden_size, 2*hidden_size)
+        #self.proj_src = nn.Sequential(nn.Linear(2*hidden_size, 2*hidden_size), nn.Tanh(), nn.Linear(2*hidden_size, 2*hidden_size))
+        #self.proj_trg = nn.Sequential(nn.Linear(2*hidden_size, 2*hidden_size), nn.Tanh(), nn.Linear(2*hidden_size, 2*hidden_size))
         
-        self.linear_src2 = nn.Linear(4*hidden_size, hidden_size)
-        self.linear_trg2 = nn.Linear(4*hidden_size, hidden_size)
+        self.linear_src = nn.Linear(4*hidden_size, hidden_size)
+        self.linear_trg = nn.Linear(4*hidden_size, hidden_size)
 
         self.linear = nn.Linear(2*hidden_size, latent_size)
         self.linear_mu = nn.Linear(latent_size, latent_size)
@@ -135,8 +135,11 @@ class LSTMAttentionApproximatePosterior(nn.Module):
 
     def forward(self, src, encoded_src, trg, encoded_trg):
         
-        h_src = F.tanh(self.linear_src1(encoded_src.transpose(0, 1))) # b x t_i x h
-        h_trg = F.tanh(self.linear_trg1(encoded_trg.transpose(0, 1))) # b x t_o x h        
+        #h_src = self.proj_src(encoded_src.transpose(0, 1)) # b x t_i x h
+        #h_trg = self.proj_trg(encoded_trg.transpose(0, 1)) # b x t_o x h
+        
+        h_src = encoded_src.transpose(0, 1)
+        h_trg = encoded_trg.transpose(0, 1)
         
         attn_src = torch.bmm(h_trg, h_src.transpose(1, 2)) # b x t_o x t_i
         attn_src = F.softmax(attn_src, dim=2)
@@ -149,8 +152,8 @@ class LSTMAttentionApproximatePosterior(nn.Module):
         c_src = self.dropout(c_src)
         c_trg = self.dropout(c_trg)
         
-        v_src = F.tanh(self.linear_src2(torch.cat((c_trg, h_src), dim=2)).sum(dim=1)) # b x h
-        v_trg = F.tanh(self.linear_trg2(torch.cat((c_src, h_trg), dim=2)).sum(dim=1)) # b x h
+        v_src = F.tanh(self.linear_src(torch.cat((c_trg, h_src), dim=2)).sum(dim=1)) # b x h
+        v_trg = F.tanh(self.linear_trg(torch.cat((c_src, h_trg), dim=2)).sum(dim=1)) # b x h
         
         h_z = F.tanh(self.linear(torch.cat((v_src, v_trg), dim=1)))
         h_z = self.dropout(h_z)

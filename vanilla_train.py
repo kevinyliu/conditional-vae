@@ -66,13 +66,14 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             if epoch == 0:
                 f = open(eval_file, "w")
                 f.write("{}".format(model))
+                f.write("Number of parameters: " + str(utils.count_parameters(model)))
                 f.close()
 
             with open(eval_file, "a") as f:
                 f.write("{}\n".format(results))
 
-            if (not (epoch + 1) % 2) and checkpoint and bleu > cur_best:
+            if (not (epoch + 1) % 2) and checkpoint and bleu_greedy > cur_best:
                 model_file = model_path + "/" + str(epoch + 1) + ".pt"
                 torch.save(model, model_file)
-                cur_best = bleu
+                cur_best = bleu_greedy
 

@@ -17,8 +17,9 @@ def beam_search(model, src, bos, eos, k=10, max_len=100, filter_token=None, gpu=
     if filter_token is None:
         filter_token = []
 
-    # run encoder
-    encoded_src = model.encode(src)  # batch size = 1
+    # run encoders - batch_size = 1
+    encoded_src_t = model.encode_source_translate(src)
+    encoded_src_i = model.encode_source_infer(src)
 
     # init 
     init_prob = 0
@@ -40,7 +41,7 @@ def beam_search(model, src, bos, eos, k=10, max_len=100, filter_token=None, gpu=
                 if gpu: last_word_input = last_word_input.cuda()
 
                 # Decode
-                lprobs, new_hidden = model.generate(last_word_input, src, encoded_src, hidden)
+                lprobs, new_hidden = model.generate(last_word_input, src, encoded_src_t, encoded_src_i, hidden)
                 lprobs = lprobs.squeeze()
 
                 # filter out unwanted tokens such as <pad>

@@ -23,10 +23,12 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         train_kl = 0
         for batch in tqdm(train_iter):
             src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
-
+            
+            trg_word_cnt = (trg != pad).float().sum() - trg.size(1)
+            
             re, kl, hidden = model(src, trg)
             
-            kl = kl.sum() / len(kl)
+            kl = kl.sum() / trg_word_cnt # KL by word
             nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
              
             neg_elbo = nre + alpha * kl
@@ -47,24 +49,26 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         val_perp, val_elbo, val_nre, val_kl = utils.eval_vae(model, val_iter, pad, gpu)
 
         # greedy search
+        model.if_zero = False
         bleu_greedy = utils.test_multibleu(model, val_iter, TRG_TEXT, k=1, gpu=gpu)
+        
         scheduler.step(bleu_greedy)
+        
+        # greedy search - zeroed out latent vector
+        model.if_zero = True
+        bleu_zero = utils.test_multibleu(model, val_iter, TRG_TEXT, k=1, gpu=gpu)
         
         results = 'Epoch: {}\n' \
                   '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n' \
                   '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n'\
-                  '\tBLEU Greedy: {:.4f}'\
+                  '\tBLEU Greedy: {:.4f}\n BLEU Zero Greedy'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
-                    np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_greedy)
+                    np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_greedy, bleu_zero)
 
-        if not (epoch + 1) % 2:
+        if not (epoch + 1) % 5:
             model.if_zero = False
             bleu = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
             results += '\n\tBLEU: {:.4f}'.format(bleu)
-            
-            model.if_zero = True
-            bleu_zero = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
-            results += '\n\tBLEU ZERO: {:.4f}'.format(bleu_zero)
 
         print(results)
 
@@ -78,12 +82,13 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             if epoch == 0:
                 f = open(eval_file, "w")
                 f.write("{}".format(model))
+                f.write("Number of parameters: " + str(utils.count_parameters(model)))
                 f.close()
 
             with open(eval_file, "a") as f:
                 f.write("{}\n".format(results))
 
-            if (not (epoch + 1) % 2) and checkpoint and bleu > cur_best:
+            if (not (epoch + 1) % 2) and checkpoint and bleu_greedy > cur_best:
                 model_file = model_path + "/" + str(epoch + 1) + ".pt"
                 torch.save(model, model_file)
-                cur_best = bleu
+                cur_best = bleu_greedy

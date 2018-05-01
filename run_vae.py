@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_lstmattn"
+model_name = "vae_lstmdotattn"
 
 gpu = True
 device = 0
@@ -10,7 +10,7 @@ device = 0
 num_layers = 2
 embed_size = 300
 hidden_size = 300
-latent_size = 300
+latent_size = 50
 
 lr = 0.002
 dpt = 0.3
