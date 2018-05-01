@@ -65,10 +65,10 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
                     np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_greedy, bleu_zero)
 
-        if not (epoch + 1) % 5:
-            model.if_zero = False
-            bleu = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
-            results += '\n\tBLEU: {:.4f}'.format(bleu)
+#        if not (epoch + 1) % 5:
+#            model.if_zero = False
+#            bleu = utils.test_multibleu(model, val_iter, TRG_TEXT, gpu=gpu)
+#            results += '\n\tBLEU: {:.4f}'.format(bleu)
 
         print(results)
 

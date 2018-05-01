@@ -82,10 +82,12 @@ def eval_vae(model, val_iter, pad, gpu=True):
     val_kl = 0
     for batch in tqdm(val_iter):
         src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
-
+        
+        trg_word_cnt = (trg != pad).float().sum() - trg.size(1)
+        
         re, kl, hidden = model(src, trg)
         
-        kl = kl.sum() / len(kl)
+        kl = kl.sum() / trg_word_cnt # KL by word
         nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
 
         neg_elbo = nre + kl
