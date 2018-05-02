@@ -66,7 +66,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, num_epoch
             if epoch == 0:
                 f = open(eval_file, "w")
                 f.write("{}".format(model))
-                f.write("Number of parameters: " + str(utils.count_parameters(model)))
+                f.write("Number of parameters: " + str(utils.count_parameters(model)) + "\n")
                 f.close()
 
             with open(eval_file, "a") as f:

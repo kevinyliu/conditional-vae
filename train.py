@@ -61,7 +61,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         results = 'Epoch: {}\n' \
                   '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n' \
                   '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n'\
-                  '\tBLEU Greedy: {:.4f}\n\t BLEU Zero Greedy: {:.4f}'\
+                  '\tBLEU Greedy: {:.4f}\n\tBLEU Zero Greedy: {:.4f}'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
                     np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_greedy, bleu_zero)
 
@@ -82,7 +82,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             if epoch == 0:
                 f = open(eval_file, "w")
                 f.write("{}".format(model))
-                f.write("Number of parameters: " + str(utils.count_parameters(model)))
+                f.write("Number of parameters: " + str(utils.count_parameters(model)) + "\n")
                 f.close()
 
             with open(eval_file, "a") as f:

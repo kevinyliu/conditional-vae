@@ -4,9 +4,10 @@ import torch.nn.functional as F
 
 # seq2seq decoder
 class BasicDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, embedding=None):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, word_dpt=0.0, embedding=None):
         super(BasicDecoder, self).__init__()
         self.hidden_size = hidden_size
+        self.word_dpt = word_dpt
 
         if embedding is not None:
             self.embedding = embedding
@@ -26,7 +27,7 @@ class BasicDecoder(nn.Module):
         x = self.embedding(trg)
 
         # word dropout
-        mask = torch.bernoulli((1 - word_dpt) * torch.ones(trg_len, batch_size)).unsqueeze(2).expand_as(x)
+        mask = torch.bernoulli((1 - self.word_dpt) * torch.ones(trg_len, batch_size)).unsqueeze(2).expand_as(x)
         if x.is_cuda:
             mask = mask.cuda()
         x = x * mask
@@ -39,7 +40,7 @@ class BasicDecoder(nn.Module):
         return output, hidden
 
 class BasicAttentionDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, embedding=None):
+    def __init__(self, vocab_size, embed_size, hidden_size, latent_size, num_layers, dpt=0.3, word_dpt=0.0, embedding=None):
         super(BasicAttentionDecoder, self).__init__()
         
         if embedding is not None:
@@ -47,6 +48,8 @@ class BasicAttentionDecoder(nn.Module):
         else:
             self.embedding = nn.Embedding(vocab_size, embed_size)
             self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
+        
+        self.word_dpt = word_dpt
         
         # projection of latent variable
         #self.linear_z = nn.Linear(latent_size, hidden_size)  
@@ -68,7 +71,7 @@ class BasicAttentionDecoder(nn.Module):
         x = self.dropout(x)
         
         # word dropout
-        mask = torch.bernoulli((1 - word_dpt) * torch.ones(trg_len, batch_size)).unsqueeze(2).expand_as(x)
+        mask = torch.bernoulli((1 - self.word_dpt) * torch.ones(trg_len, batch_size)).unsqueeze(2).expand_as(x)
         if x.is_cuda:
             mask = mask.cuda()
         x = x * mask
