@@ -2,10 +2,11 @@ import utils
 import train
 import cvae
 
-model_name = "vae_dotattn_wd3"
+model_name = "ae_dotattn"
 
 gpu = True
 device = 0
+max_len = 20
 
 num_layers = 2
 embed_size = 300
@@ -14,12 +15,12 @@ latent_size = 50
 
 lr = 0.002
 dpt = 0.3
-word_dpt = 0.3
+word_dpt = 0.0
 
 num_epochs = 50
 batch_size = 64
 
-train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, BATCH_SIZE=batch_size)
+train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, MAX_LEN=max_len, BATCH_SIZE=batch_size)
 
 anneal = utils.kl_anneal_linear
 
