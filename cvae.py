@@ -38,10 +38,10 @@ class CVAE(nn.Module):
         self.q = inferer.LSTMAttentionApproximatePosterior(hidden_size, latent_size, dpt)
         
     def encode_source_translate(self, src):
-        return self.src_encoder_t(src) if self.share_params else self.shared_encoder(self.src_embedding(src))
+        return self.shared_encoder(self.src_embedding(src)) if self.share_params else self.src_encoder_t(src)
 
     def encode_source_infer(self, src):
-        return self.src_encoder_i(src) if self.share_params else self.shared_encoder(self.src_embedding(src))
+        return self.shared_encoder(self.src_embedding(src)) if self.share_params else self.src_encoder_i(src)
     
     def generate(self, trg, src, encoded_src_t, encoded_src_i, hidden=None):
         z, _ = self.p(src, encoded_src_i)  # at eval time, we don't sample, we just use the mean
