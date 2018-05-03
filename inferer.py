@@ -124,10 +124,11 @@ class LSTMAttentionApproximatePosterior(nn.Module):
         #self.proj_src = nn.Sequential(nn.Linear(2*hidden_size, 2*hidden_size), nn.Tanh(), nn.Linear(2*hidden_size, 2*hidden_size))
         #self.proj_trg = nn.Sequential(nn.Linear(2*hidden_size, 2*hidden_size), nn.Tanh(), nn.Linear(2*hidden_size, 2*hidden_size))
         
-        self.linear_src = nn.Linear(4*hidden_size, hidden_size)
-        self.linear_trg = nn.Linear(4*hidden_size, hidden_size)
+        #self.linear_src = nn.Linear(4*hidden_size, hidden_size)
+        #self.linear_trg = nn.Linear(4*hidden_size, hidden_size)
 
-        self.linear = nn.Linear(2*hidden_size, latent_size)
+        self.linear = nn.Linear(8*hidden_size, latent_size)
+        
         self.linear_mu = nn.Linear(latent_size, latent_size)
         self.linear_var = nn.Linear(latent_size, latent_size)
         
@@ -152,10 +153,14 @@ class LSTMAttentionApproximatePosterior(nn.Module):
         c_src = self.dropout(c_src)
         c_trg = self.dropout(c_trg)
         
-        v_src = F.tanh(self.linear_src(torch.cat((c_trg, h_src), dim=2)).sum(dim=1)) # b x h
-        v_trg = F.tanh(self.linear_trg(torch.cat((c_src, h_trg), dim=2)).sum(dim=1)) # b x h
+        #v_src = F.tanh(self.linear_src(torch.cat((c_trg, h_src), dim=2)).sum(dim=1)) # b x h
+        #v_trg = F.tanh(self.linear_trg(torch.cat((c_src, h_trg), dim=2)).sum(dim=1)) # b x h
         
-        h_z = F.tanh(self.linear(torch.cat((v_src, v_trg), dim=1)))
+        #h_z = F.tanh(self.linear(torch.cat((v_src, v_trg), dim=1)))
+        
+        h = torch.cat((c_src.mean(dim=1), c_trg.mean(dim=1), h_src.mean(dim=1), h_trg.mean(dim=1)), dim=1)
+        h_z = F.tanh(self.linear(h))
+        
         h_z = self.dropout(h_z)
         mu = self.linear_mu(h_z)
         log_var = self.linear_var(h_z)

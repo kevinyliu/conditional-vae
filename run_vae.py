@@ -2,11 +2,11 @@ import utils
 import train
 import cvae
 
-model_name = "ae_dotattn"
+model_name = "vae_dotattnv2_anneal"
 
 gpu = True
 device = 0
-max_len = 20
+max_len = 100
 
 num_layers = 2
 embed_size = 300

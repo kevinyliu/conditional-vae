@@ -70,6 +70,12 @@ def kl_anneal_linear(epoch, epoch_full=15, gpu=True):
     if gpu: alpha = alpha.cuda()
     return alpha
 
+def kl_anneal_custom(epoch):
+    if epoch < 5:
+        return 0
+    if epoch < 15:
+        return (epoch - 5) / 10
+    return 1.0
 
 def eval_vae(model, val_iter, pad, gpu=True):
     """
