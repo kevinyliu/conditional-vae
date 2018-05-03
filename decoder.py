@@ -50,7 +50,7 @@ class BasicAttentionDecoder(nn.Module):
             self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
         
         self.word_dpt = word_dpt
-        
+
         # projection of latent variable
         #self.linear_z = nn.Linear(latent_size, hidden_size)  
         #self.lstm = nn.LSTM(embed_size + hidden_size, hidden_size, num_layers, dropout=dpt)
@@ -69,13 +69,13 @@ class BasicAttentionDecoder(nn.Module):
 
         x = self.embedding(trg)
         x = self.dropout(x)
-        
+
         # word dropout
         mask = torch.bernoulli((1 - self.word_dpt) * torch.ones(trg_len, batch_size)).unsqueeze(2).expand_as(x)
         if x.is_cuda:
             mask = mask.cuda()
         x = x * mask
-        
+
         # projection of latent variable
         #h_z = F.tanh(self.linear_z(z))
         #x = torch.cat((x, h_z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
@@ -109,7 +109,7 @@ class DummyDecoder(nn.Module):
         else:
             self.embedding = nn.Embedding(vocab_size, embed_size)
             self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
-        
+
         #self.linear_z = nn.Linear(latent_size, hidden_size)  
         #self.lstm = nn.LSTM(embed_size + hidden_size, hidden_size, num_layers, dropout=dpt)
         
@@ -150,7 +150,9 @@ class BahdanauAttnDecoder(nn.Module):
         else:
             self.embedding = nn.Embedding(vocab_size, embed_size)
             self.embedding.weight.data.copy_((torch.rand(vocab_size, embed_size) - 0.5) * 2)
-        
+
+        self.target_proj = nn.Linear(latent_size, 2 * latent_size)
+
         self.lstm = nn.LSTM(embed_size + 2 * hidden_size + latent_size, hidden_size, num_layers, dropout=dpt)
         # dropout for LSTM
         self.dropout = nn.Dropout(p=dpt)
@@ -187,6 +189,7 @@ class BahdanauAttnDecoder(nn.Module):
     def forward(self, trg, z, encoded_src, hidden=None, return_attn=False, word_dpt=0):
         # embed the target words
         trg_embeddings = self.embedding(trg)
+        z = torch.tanh(self.target_proj(z))
         trg_embeddings = torch.cat((trg_embeddings, z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
         # pre-compute annotation scores to save resources. dimension: |F| x B x N
         annotations = encoded_src
