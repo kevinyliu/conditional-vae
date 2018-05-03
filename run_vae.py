@@ -24,7 +24,7 @@ train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, MAX_LEN=m
 
 anneal = utils.kl_anneal_linear
 
-model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_size, num_layers, dpt, word_dpt)
+model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_size, num_layers, dpt, word_dpt, share_params=True)
 if gpu:
     model.cuda()
 
