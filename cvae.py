@@ -68,7 +68,8 @@ class CVAE(nn.Module):
         q_normal = Normal(loc=mu_posterior, scale=log_var_posterior.mul(0.5).exp())
         kl = kl_divergence(q_normal, p_normal)
 
-        z = mu_posterior #q_normal.rsample()
+        # z = mu_posterior
+        z = q_normal.rsample()
 
         ll, hidden = self.decoder(trg, z, encoded_src_t)
 
