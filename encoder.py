@@ -22,3 +22,17 @@ class Encoder(nn.Module):
         x = self.dropout(x)
         output, hidden = self.lstm(x, hidden)
         return output
+
+
+class SharedEncoder(nn.Module):
+    def __init__(self, embed_size, hidden_size, num_layers, dpt=0.3):
+        super(SharedEncoder, self).__init__()
+        self.hidden_size = hidden_size
+
+        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, dropout=dpt, bidirectional=True)
+        self.dropout = nn.Dropout(p=dpt)
+
+    def forward(self, x, hidden=None):
+        x = self.dropout(x)
+        output, hidden = self.lstm(x, hidden)
+        return output
