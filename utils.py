@@ -85,7 +85,8 @@ def eval_vae(model, val_iter, pad, gpu=True):
     model.eval()
     loss = nn.NLLLoss(size_average=True, ignore_index=pad)
     val_nre = 0
-    val_kl = 0
+    val_kl_word = 0
+    val_kl_sent = 0
     for batch in tqdm(val_iter):
         src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
         
@@ -93,19 +94,23 @@ def eval_vae(model, val_iter, pad, gpu=True):
         
         re, kl, hidden = model(src, trg)
         
-        kl = kl.sum() / trg_word_cnt # KL by word
+        kl_word = kl.sum() / trg_word_cnt # KL by word
+        kl_sent = kl.sum() # KL by sent
+
         nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
 
-        neg_elbo = nre + kl
+        neg_elbo = nre + kl_word
 
         val_nre += nre.item()
-        val_kl += kl.item()
+        val_kl_word += kl_word.item()
+        val_kl_sent += kl_sent.item()
 
     val_nre /= len(val_iter)
-    val_kl /= len(val_iter)
+    val_kl_word /= len(val_iter)
+    val_kl_sent /= len(val_iter)
     val_elbo = val_nre + val_kl
     model.train()
-    return np.exp(val_elbo), val_elbo, val_nre, val_kl  
+    return np.exp(val_elbo), val_elbo, val_nre, val_kl_word, val_kl_sent
 
 
 def eval_seq2seq(model, val_iter, pad, gpu=True):

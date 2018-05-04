@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_dotattnv2_shareencoder"
+model_name = "vae_dotattnv2300_shareencoder"
 
 gpu = True
 device = 0
@@ -11,7 +11,7 @@ max_len = 100
 num_layers = 2
 embed_size = 300
 hidden_size = 300
-latent_size = 50
+latent_size = 300
 
 lr = 0.002
 dpt = 0.3
