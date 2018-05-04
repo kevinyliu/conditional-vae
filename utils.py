@@ -70,7 +70,7 @@ def kl_anneal_linear(epoch, epoch_full=15, gpu=True):
     if gpu: alpha = alpha.cuda()
     return alpha
 
-def kl_anneal_custom(epoch):
+def kl_anneal_custom(epoch, gpu=True):
     if epoch < 5:
         return 0
     if epoch < 15:
