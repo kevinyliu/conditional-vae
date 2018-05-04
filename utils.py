@@ -95,7 +95,7 @@ def eval_vae(model, val_iter, pad, gpu=True):
         re, kl, hidden = model(src, trg)
         
         kl_word = kl.sum() / trg_word_cnt # KL by word
-        kl_sent = kl.sum() # KL by sent
+        kl_sent = kl.sum() / len(kl) # KL by sent
 
         nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
 
