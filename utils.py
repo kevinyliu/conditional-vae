@@ -70,7 +70,7 @@ def kl_anneal_linear(epoch, epoch_full=15, gpu=True):
     if gpu: alpha = alpha.cuda()
     return alpha
 
-def kl_anneal_custom(epoch, gpu=True):
+def kl_anneal_custom(epoch):
     if epoch < 5:
         return 0
     if epoch < 15:
@@ -108,7 +108,7 @@ def eval_vae(model, val_iter, pad, gpu=True):
     val_nre /= len(val_iter)
     val_kl_word /= len(val_iter)
     val_kl_sent /= len(val_iter)
-    val_elbo = val_nre + val_kl
+    val_elbo = val_nre + val_kl_word
     model.train()
     return np.exp(val_elbo), val_elbo, val_nre, val_kl_word, val_kl_sent
 
