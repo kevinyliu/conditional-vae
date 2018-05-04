@@ -64,7 +64,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         bleu_zero = utils.test_multibleu(model, val_iter, TRG_TEXT, k=1, gpu=gpu)
         
         results = 'Epoch: {}\n' \
-                  '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL/W: {:.4f} KL/S: {:4.f}\n' \
+                  '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL/W: {:.4f} KL/S: {:.4f}\n' \
                   '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL/W: {:.4f} KL/S: {:.4f}\n'\
                   '\tBLEU Greedy: {:.4f}\n\tBLEU Zero Greedy: {:.4f}'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl_word, val_kl_sent,
