@@ -31,7 +31,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             kl = kl.sum() / trg_word_cnt # KL by word
             nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
              
-            neg_elbo = nre  + alpha * kl
+            neg_elbo = nre + alpha * kl.clamp(0.2)
 
             train_nre += nre.item()
             train_kl += kl.item()
@@ -51,7 +51,6 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         # greedy search
         model.if_zero = False
         bleu_greedy = utils.test_multibleu(model, val_iter, TRG_TEXT, k=1, gpu=gpu)
-        
         
         scheduler.step(bleu_greedy)
         #scheduler.step(val_nre)

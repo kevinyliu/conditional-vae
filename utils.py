@@ -77,6 +77,11 @@ def kl_anneal_custom(epoch, gpu=True):
         return (epoch - 5) / 10
     return 1.0
 
+def kl_anneal_custom2(epoch, gpu=True):
+    if epoch < 5:
+        return 0
+    return 0.1
+
 def eval_vae(model, val_iter, pad, gpu=True):
     """
     Calculates bound on perplexity using ELBO.
