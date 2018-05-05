@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_v2_clamp2_ld32_anneal2"
+model_name = "vae_clamp2_ld32_anneal2"
 
 gpu = True
 device = 0

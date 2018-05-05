@@ -18,9 +18,9 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         model.train()
         
         alpha = anneal(epoch, gpu=gpu)
-            
         train_nre = 0
-        train_kl = 0
+        train_kl_word = 0
+        train_kl_sent = 0
         for batch in tqdm(train_iter):
             src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
             
@@ -28,13 +28,15 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             
             re, kl, hidden = model(src, trg)
             
-            kl = kl.sum() / trg_word_cnt # KL by word
+            kl_word = kl.sum() / trg_word_cnt # KL by word
+            kl_sent = kl.sum() / len(kl) # KL by sent
             nre = loss(re[:-1, :, :].view(-1, re.size(2)), trg[1:, :].view(-1))
              
-            neg_elbo = nre + alpha * kl.clamp(0.2)
+            neg_elbo = nre + alpha * kl_word.clamp(0.2)
 
             train_nre += nre.item()
-            train_kl += kl.item()
+            train_kl_word += kl_word.item()
+            train_kl_sent += kl_sent.item()
 
             optimizer.zero_grad()
             neg_elbo.backward()
@@ -42,11 +44,12 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             optimizer.step()
                     
         train_nre /= len(train_iter)
-        train_kl /= len(train_iter)
-        train_elbo = train_nre + train_kl
+        train_kl_word /= len(train_iter)
+        train_kl_sent /= len(train_iter)
+        train_elbo = train_nre + train_kl_word
         train_perp = np.exp(train_elbo)
 
-        val_perp, val_elbo, val_nre, val_kl = utils.eval_vae(model, val_iter, pad, gpu)
+        val_perp, val_elbo, val_nre, val_kl_word, val_kl_sent = utils.eval_vae(model, val_iter, pad, gpu)
 
         # greedy search
         model.if_zero = False
@@ -60,11 +63,11 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         bleu_zero = utils.test_multibleu(model, val_iter, TRG_TEXT, k=1, gpu=gpu)
         
         results = 'Epoch: {}\n' \
-                  '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n' \
-                  '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL: {:.4f}\n'\
+                  '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL/W: {:.4f} KL/S: {:.4f}\n' \
+                  '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL/W: {:.4f} KL/S: {:.4f}\n'\
                   '\tBLEU Greedy: {:.4f}\n\tBLEU Zero Greedy: {:.4f}'\
-            .format(epoch+1, val_perp, val_elbo, val_nre, val_kl,
-                    np.exp(train_elbo), train_elbo, train_nre, train_kl, bleu_greedy, bleu_zero)
+            .format(epoch+1, val_perp, val_elbo, val_nre, val_kl_word, val_kl_sent,
+                    np.exp(train_elbo), train_elbo, train_nre, train_kl_word, train_kl_sent, bleu_greedy, bleu_zero)
 
 #        if not (epoch + 1) % 5:
 #            model.if_zero = False
