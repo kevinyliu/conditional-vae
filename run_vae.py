@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_clamp2_ld32_anneal2"
+model_name = "vae_ld32_anneal1_clamp"
 
 gpu = True
 device = 0
@@ -24,7 +24,7 @@ share_encoder = True
 
 train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, MAX_LEN=max_len, BATCH_SIZE=batch_size)
 
-anneal = utils.kl_anneal_custom2
+anneal = utils.kl_anneal_custom
 
 model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_size, num_layers, dpt, word_dpt, share_encoder)
 if gpu:

@@ -21,12 +21,17 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         train_nre = 0
         train_kl_word = 0
         train_kl_sent = 0
+        
+        train_mu_dist = 0
+        train_p_scale = 0
+        train_q_scale = 0
+        
         for batch in tqdm(train_iter):
             src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
             
             trg_word_cnt = (trg != pad).float().sum() - trg.size(1)
             
-            re, kl, hidden = model(src, trg)
+            re, kl, hidden, mu_prior, log_var_prior, mu_posterior, log_var_posterior = model(src, trg)
             
             kl_word = kl.sum() / trg_word_cnt # KL by word
             kl_sent = kl.sum() / len(kl) # KL by sent
@@ -37,6 +42,10 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
             train_nre += nre.item()
             train_kl_word += kl_word.item()
             train_kl_sent += kl_sent.item()
+            
+            train_mu_dist += (mu_prior - mu_posterior).abs().mean().item()
+            train_p_scale += log_var_prior.mul(0.5).exp().mean().item()
+            train_q_scale += log_var_posterior.mul(0.5).exp().mean().item()
 
             optimizer.zero_grad()
             neg_elbo.backward()
@@ -46,10 +55,13 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         train_nre /= len(train_iter)
         train_kl_word /= len(train_iter)
         train_kl_sent /= len(train_iter)
+        train_mu_dist /= len(train_iter)
+        train_p_scale /= len(train_iter)
+        train_q_scale /= len(train_iter)
         train_elbo = train_nre + train_kl_word
         train_perp = np.exp(train_elbo)
 
-        val_perp, val_elbo, val_nre, val_kl_word, val_kl_sent = utils.eval_vae(model, val_iter, pad, gpu)
+        val_perp, val_elbo, val_nre, val_kl_word, val_kl_sent, val_mu_dist, val_p_scale, val_q_scale = utils.eval_vae(model, val_iter, pad, gpu)
 
         # greedy search
         model.if_zero = False
@@ -65,9 +77,11 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         results = 'Epoch: {}\n' \
                   '\tVALID PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL/W: {:.4f} KL/S: {:.4f}\n' \
                   '\tTRAIN PB: {:.4f} NELBO: {:.4f} RE: {:.4f} KL/W: {:.4f} KL/S: {:.4f}\n'\
-                  '\tBLEU Greedy: {:.4f}\n\tBLEU Zero Greedy: {:.4f}'\
+                  '\tBLEU Greedy: {:.4f}\n\tBLEU Zero Greedy: {:.4f}\n'\
+                    '\tVALID MU_DIST: {:.4f} P_SCALE: {:.4f} Q_SCALE: {:.4f}\n'\
+                    '\tTRAIN MU_DIST: {:.4f} P_SCALE: {:.4f} Q_SCALE: {:.4f}'\
             .format(epoch+1, val_perp, val_elbo, val_nre, val_kl_word, val_kl_sent,
-                    np.exp(train_elbo), train_elbo, train_nre, train_kl_word, train_kl_sent, bleu_greedy, bleu_zero)
+                    np.exp(train_elbo), train_elbo, train_nre, train_kl_word, train_kl_sent, bleu_greedy, bleu_zero, val_mu_dist, val_p_scale, val_q_scale, train_mu_dist, train_p_scale, train_q_scale)
 
 #        if not (epoch + 1) % 5:
 #            model.if_zero = False

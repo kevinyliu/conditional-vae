@@ -70,7 +70,7 @@ def kl_anneal_linear(epoch, epoch_full=15, gpu=True):
     if gpu: alpha = alpha.cuda()
     return alpha
 
-def kl_anneal_custom(epoch):
+def kl_anneal_custom(epoch, gpu=True):
     if epoch < 5:
         return 0
     if epoch < 15:
@@ -92,12 +92,17 @@ def eval_vae(model, val_iter, pad, gpu=True):
     val_nre = 0
     val_kl_word = 0
     val_kl_sent = 0
+    
+    mu_dist = 0
+    p_scale = 0
+    q_scale = 0
+    
     for batch in tqdm(val_iter):
         src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
         
         trg_word_cnt = (trg != pad).float().sum() - trg.size(1)
         
-        re, kl, hidden = model(src, trg)
+        re, kl, hidden, mu_prior, log_var_prior, mu_posterior, log_var_posterior = model(src, trg)
         
         kl_word = kl.sum() / trg_word_cnt # KL by word
         kl_sent = kl.sum() / len(kl) # KL by sent
@@ -109,13 +114,20 @@ def eval_vae(model, val_iter, pad, gpu=True):
         val_nre += nre.item()
         val_kl_word += kl_word.item()
         val_kl_sent += kl_sent.item()
+        
+        mu_dist += (mu_prior - mu_posterior).abs().mean().item()
+        p_scale += log_var_prior.mul(0.5).exp().mean().item()
+        q_scale += log_var_posterior.mul(0.5).exp().mean().item()
 
     val_nre /= len(val_iter)
     val_kl_word /= len(val_iter)
     val_kl_sent /= len(val_iter)
+    mu_dist /= len(val_iter)
+    p_scale /= len(val_iter)
+    q_scale /= len(val_iter)
     val_elbo = val_nre + val_kl_word
     model.train()
-    return np.exp(val_elbo), val_elbo, val_nre, val_kl_word, val_kl_sent
+    return np.exp(val_elbo), val_elbo, val_nre, val_kl_word, val_kl_sent, mu_dist, p_scale, q_scale
 
 
 def eval_seq2seq(model, val_iter, pad, gpu=True):

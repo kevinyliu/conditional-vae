@@ -70,7 +70,7 @@ class CVAE(nn.Module):
 
         ll, hidden = self.decoder(trg, z, encoded_src_t)
 
-        return ll, kl, hidden
+        return ll, kl, hidden, mu_prior, log_var_prior, mu_posterior, log_var_posterior
 
 
 
