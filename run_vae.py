@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_ld32_anneal1_clamp"
+model_name = "vae_v2"
 
 gpu = True
 device = 0
@@ -16,6 +16,7 @@ latent_size = 32
 lr = 0.002
 dpt = 0.3
 word_dpt = 0.0
+min_kl = 0.0
 
 num_epochs = 50
 batch_size = 64
@@ -32,4 +33,4 @@ if gpu:
 
 print("Number of parameters: {}".format(utils.count_parameters(model)))
 
-train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, lr, checkpoint=True)
+train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, lr, min_kl,checkpoint=True)

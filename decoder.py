@@ -54,9 +54,11 @@ class BasicAttentionDecoder(nn.Module):
         # projection of latent variable
         #self.linear_z = nn.Linear(latent_size, hidden_size)  
         #self.lstm = nn.LSTM(embed_size + hidden_size, hidden_size, num_layers, dropout=dpt)
+        #self.linear1 = nn.Linear(3 * hidden_size, embed_size)
         
         self.lstm = nn.LSTM(embed_size + latent_size, hidden_size, num_layers, dropout=dpt)
         self.linear1 = nn.Linear(2 * hidden_size + latent_size, embed_size)
+        
         self.linear2 = nn.Linear(embed_size, vocab_size)
         self.dropout = nn.Dropout(p=dpt)
         
@@ -78,7 +80,7 @@ class BasicAttentionDecoder(nn.Module):
 
         # projection of latent variable
         #h_z = F.tanh(self.linear_z(z))
-        #x = torch.cat((x, h_z.unsqueeze(0).repeat(trg.size(0),1,1)), dim=2)
+        #x = torch.cat((x, h_z.unsqueeze(0).repeat(trg_len,1,1)), dim=2)
         
         x = torch.cat((x, z.unsqueeze(0).repeat(trg_len,1,1)), dim=2)
         
@@ -91,7 +93,9 @@ class BasicAttentionDecoder(nn.Module):
         
         context = torch.bmm(attn, h_e).transpose(0, 1) # t_o x b x d
         
+        
         output = torch.cat((context, output, z.unsqueeze(0).repeat(trg_len,1,1)), dim=2)
+        #output = torch.cat((context, output, h_z.unsqueeze(0).repeat(trg_len,1,1)), dim=2)
         
         output = torch.tanh(self.linear1(output))
         output = self.dropout(output) 
