@@ -27,6 +27,38 @@ class Prior(nn.Module):
 
         return mu, log_var
 
+class SelfAttentionPrior(nn.Module):
+    def __init__(self, hidden_size, latent_size, dpt=0.3):
+        super(SelfAttentionPrior, self).__init__()
+        
+        self.latent_size = latent_size
+        self.hidden_size = hidden_size
+        
+        self.linear = nn.Linear(4*hidden_size, latent_size)
+        
+        self.linear_mu = nn.Linear(latent_size, latent_size)
+        self.linear_var = nn.Linear(latent_size, latent_size)
+        
+        self.dropout = nn.Dropout(p=dpt)
+        
+    def forward(self, src, encoded_src):
+        h_src = encoded_src.transpose(0,1)
+        
+        attn_src = torch.bmm(h_src, h_src.transpose(1, 2)) # b x t_o x t_i
+        attn_src = F.softmax(attn_src, dim=2)
+        c_src = torch.bmm(attn_src, h_src) # b x t_o x h
+        
+        c_src = self.dropout(c_src)
+        
+        h = torch.cat((c_src.mean(dim=1), h_src.mean(dim=1)), dim=1)
+        h_z = F.tanh(self.linear(h))
+        
+        h_z = self.dropout(h_z)
+        mu = self.linear_mu(h_z)
+        log_var = self.linear_var(h_z)
+
+        return mu, log_var
+        
 
 class ApproximatePosterior(nn.Module):
     def __init__(self, hidden_size, latent_size, dpt=0.3):
