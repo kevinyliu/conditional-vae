@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_v2"
+model_name = "vae_v2_selfAttention"
 
 gpu = True
 device = 0
