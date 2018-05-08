@@ -7,7 +7,7 @@ from torchtext import datasets
 from torchtext.vocab import GloVe
 
 import itertools, os, re
-from nltk.translate import bleu_score
+# from nltk.translate import bleu_score
 import tempfile, subprocess
 import spacy
 import numpy as np
