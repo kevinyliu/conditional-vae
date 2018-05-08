@@ -15,7 +15,7 @@ latent_size = 32
 
 lr = 0.002
 dpt = 0.3
-word_dpt = 0.0
+word_dpt = 0.25
 min_kl = 0.0
 
 num_epochs = 50
@@ -27,11 +27,12 @@ train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, MAX_LEN=m
 
 anneal = utils.kl_anneal_custom
 
-model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_size, num_layers, dpt, word_dpt, share_encoder)
+model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_size, num_layers, dpt,
+                  word_dpt=0.0, share_params=share_encoder)
 if gpu:
     model.cuda()
 
 print("Number of parameters: {}".format(utils.count_parameters(model)))
 
 train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, lr, min_kl,
-            word_dpt=0.25, checkpoint=True)
+            word_dpt=word_dpt, checkpoint=True)
