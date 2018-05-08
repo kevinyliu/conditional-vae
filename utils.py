@@ -75,7 +75,7 @@ def kl_anneal_custom(epoch, start=5, end=15, gpu=True):
     if epoch < start:
         return 0
     if epoch < end:
-        return (epoch - start) / end
+        return (epoch - start) / (end - start)
     return 1.0
 
 
