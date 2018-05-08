@@ -17,6 +17,7 @@ lr = 0.002
 dpt = 0.3
 word_dpt = 0.25
 min_kl = 0.0
+kl_coef = 1
 
 num_epochs = 50
 batch_size = 64
@@ -34,5 +35,5 @@ if gpu:
 
 print("Number of parameters: {}".format(utils.count_parameters(model)))
 
-train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, lr, min_kl,
-            word_dpt=word_dpt, checkpoint=True)
+train.train(model, model_name, train_iter, val_iter, DE, EN, anneal=anneal, num_epochs=num_epochs, gpu=gpu, lr=lr,
+            kl_coef=kl_coef, min_kl=min_kl, word_dpt=word_dpt, checkpoint=True)
