@@ -7,7 +7,8 @@ import os
 import numpy as np
 
 
-def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, num_epochs=20, gpu=False, lr=0.001, weight_decay=0, min_kl=0.0, checkpoint=False):
+def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, num_epochs=20, gpu=False, lr=0.001,
+          weight_decay=0, min_kl=0.0, word_dpt=0.0, checkpoint=False):
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=30, factor=0.25, verbose=True, cooldown=6)
     pad = TRG_TEXT.vocab.stoi['<pad>']
@@ -27,8 +28,14 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         train_q_scale = 0
         
         for batch in tqdm(train_iter):
-            src, trg = (batch.src.cuda(), batch.trg.cuda()) if gpu else (batch.src, batch.trg)
-            
+            # note: word dropout masking works this way because the '<unk>' tokens happen to be 0 in both languages
+            src_dpt_mask = torch.bernoulli((1 - word_dpt) * torch.ones(batch.src.size())).type(torch.LongTensor)
+            trg_dpt_mask = torch.bernoulli((1 - word_dpt) * torch.ones(batch.trg.size())).type(torch.LongTensor)
+            src_dpt_mask = src_dpt_mask.cuda() if gpu else src_dpt_mask
+            trg_dpt_mask = trg_dpt_mask.cuda() if gpu else trg_dpt_mask
+            src = batch.src * src_dpt_mask
+            trg = batch.trg * trg_dpt_mask
+
             trg_word_cnt = (trg != pad).float().sum() - trg.size(1)
             
             re, kl, hidden, mu_prior, log_var_prior, mu_posterior, log_var_posterior = model(src, trg)

@@ -34,8 +34,9 @@ class CVAE(nn.Module):
 #         self.p = inferer.Prior(hidden_size, latent_size, dpt)
         self.p = inferer.SelfAttentionPrior(hidden_size, latent_size, dpt)
         #self.q = inferer.ApproximatePosterior(hidden_size, latent_size, dpt)
-        self.q = inferer.LSTMAttentionApproximatePosterior(hidden_size, latent_size, dpt)
-        
+        self.q = inferer.ApproximatePosterior(hidden_size, latent_size, dpt)
+        # self.q = inferer.LSTMAttentionApproximatePosterior(hidden_size, latent_size, dpt)
+
     def encode_source_translate(self, src):
         return self.shared_encoder(self.src_embedding(src)) if self.share_params else self.src_encoder_t(src)
 

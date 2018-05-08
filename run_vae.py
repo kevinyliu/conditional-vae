@@ -33,4 +33,5 @@ if gpu:
 
 print("Number of parameters: {}".format(utils.count_parameters(model)))
 
-train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, lr, min_kl,checkpoint=True)
+train.train(model, model_name, train_iter, val_iter, DE, EN, anneal, num_epochs, gpu, lr, min_kl,
+            word_dpt=0.25, checkpoint=True)
