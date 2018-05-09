@@ -29,16 +29,12 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
         
         for batch in tqdm(train_iter):
             # note: word dropout masking works this way because the '<unk>' tokens happen to be 0 in both languages
-            src_dpt_mask = torch.bernoulli((1 - word_dpt) * torch.ones(batch.src.size())).type(torch.LongTensor)
-            trg_dpt_mask = torch.bernoulli((1 - word_dpt) * torch.ones(batch.trg.size())).type(torch.LongTensor)
-            src_dpt_mask = src_dpt_mask.cuda() if gpu else src_dpt_mask
-            trg_dpt_mask = trg_dpt_mask.cuda() if gpu else trg_dpt_mask
-            src = batch.src * src_dpt_mask
-            trg = batch.trg * trg_dpt_mask
+            src = batch.src
+            trg = batch.trg
 
             trg_word_cnt = (trg != pad).float().sum() - trg.size(1)
             
-            re, kl, hidden, mu_prior, log_var_prior, mu_posterior, log_var_posterior = model(src, trg)
+            re, kl, hidden, mu_prior, log_var_prior, mu_posterior, log_var_posterior = model(src, trg, word_dpt)
             
             kl_word = kl.sum() / trg_word_cnt # KL by word
             kl_sent = kl.sum() / len(kl) # KL by sent
@@ -56,7 +52,7 @@ def train(model, model_name, train_iter, val_iter, SRC_TEXT, TRG_TEXT, anneal, n
 
             optimizer.zero_grad()
             neg_elbo.backward()
-            torch.nn.utils.clip_grad_norm(model.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
                     
         train_nre /= len(train_iter)

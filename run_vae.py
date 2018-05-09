@@ -2,7 +2,7 @@ import utils
 import train
 import cvae
 
-model_name = "vae_v2_selfAttention"
+model_name = "cvae_wdp"
 
 gpu = True
 device = 0
@@ -29,7 +29,7 @@ train_iter, val_iter, test, DE, EN = utils.torchtext_extract(d=device, MAX_LEN=m
 anneal = utils.kl_anneal_custom
 
 model = cvae.CVAE(len(DE.vocab), len(EN.vocab), embed_size, hidden_size, latent_size, num_layers, dpt,
-                  word_dpt=0.0, share_params=share_encoder)
+                  share_params=share_encoder)
 if gpu:
     model.cuda()
 
